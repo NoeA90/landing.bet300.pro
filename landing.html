@@ -473,7 +473,7 @@ button:disabled{
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyEXuwshcjPsFcYZgUc5QWPT2wUUDemZBL3YsO_KgTPJ8jMgmGZ9nsJoyifAtfSWWOC/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzZoxZymePcZaT9MSAdDXFLcvE0sGgdUtf3MycUcIp1Ti2tmb30gWrRkga66y-cVBdg/exec";
 
 const WHATSAPP_POR_PC = {
   P1: "5492235181171",
@@ -552,7 +552,7 @@ function comprimirImagenChat(file, cb){
 
   reader.onload = () => {
     img.onload = () => {
-      const max = 1280;
+      const max = 560;
       let w = img.width;
       let h = img.height;
 
@@ -571,7 +571,7 @@ function comprimirImagenChat(file, cb){
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, w, h);
 
-      cb(canvas.toDataURL("image/jpeg", .74));
+      cb(canvas.toDataURL("image/jpeg", .52));
     };
 
     img.src = reader.result;
@@ -875,11 +875,27 @@ async function abrirChatLite(){if(!userData||!userData.usuario||!userData.nombre
 function cerrarChatLite(){document.getElementById("chatLite").classList.add("hidden")}
 function iniciarTimerChatLite(){if(chatLiteTimer)clearInterval(chatLiteTimer);chatLiteTimer=setInterval(cargarChatLite,4000)}
 async function cargarChatLite(){if(!chatSessionId)return;const r=await api({action:"getchatlanding",idChat:chatSessionId,chatSessionId:chatSessionId});if(!r.ok)return;const mensajes=r.mensajes||[];if(mensajes.length===chatLiteMensajesCount)return;chatLiteMensajesCount=mensajes.length;renderChatLite(mensajes)}
-function renderChatLite(mensajes){const box=document.getElementById("chatLiteBody");let html=`<div class="chat-day">Chat de soporte</div>`;if(!mensajes.length){html+=`<div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div>`}mensajes.forEach(m=>{const tipo=String(m.TIPO_EMISOR||"").toUpperCase();const esUsuario=tipo==="USUARIO";const cls=esUsuario?"user":"operator";const hora=formatearHoraChat(m.FECHA);const leido=String(m.LEIDO||"").toUpperCase()==="SI";html+=`<div class="chat-msg ${cls}"><div class="chat-bubble">${escapeHtml(m.MENSAJE||"")}${m.IMAGEN_URL?`<img src="${m.IMAGEN_URL}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">${esUsuario?estadoMensajeChat(leido):"Soporte"} · ${hora}</div></div>`});box.innerHTML=html;box.scrollTop=box.scrollHeight}
+
+function normalizarImagenUrl(url){
+  const u = String(url || "");
+  if(u.startsWith("data:image")) return u;
+  const m1 = u.match(/\/d\/([^/]+)/);
+  const m2 = u.match(/[?&]id=([^&]+)/);
+  const id = m1 ? m1[1] : (m2 ? m2[1] : "");
+  return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w1000` : u;
+}
+
+function renderChatLite(mensajes){const box=document.getElementById("chatLiteBody");let html=`<div class="chat-day">Chat de soporte</div>`;if(!mensajes.length){html+=`<div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div>`}mensajes.forEach(m=>{const tipo=String(m.TIPO_EMISOR||"").toUpperCase();const esUsuario=tipo==="USUARIO";const cls=esUsuario?"user":"operator";const hora=formatearHoraChat(m.FECHA);const leido=String(m.LEIDO||"").toUpperCase()==="SI";html+=`<div class="chat-msg ${cls}"><div class="chat-bubble">${escapeHtml(m.MENSAJE||"")}${m.IMAGEN_URL?`<img src="${normalizarImagenUrl(m.IMAGEN_URL)}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">${esUsuario?estadoMensajeChat(leido):"Soporte"} · ${hora}</div></div>`});box.innerHTML=html;box.scrollTop=box.scrollHeight}
 function estadoMensajeChat(leido){return leido?"✓✓ recibido":"✓ enviado"}
 function formatearHoraChat(f){const d=new Date(f);if(isNaN(d))return"";return d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})}
 function escapeHtml(text){return String(text||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function enviarChatLite(){const input=document.getElementById("chatLiteInput");const mensaje=input.value.trim();if(!mensaje&&!chatLiteImagenBase64)return;try{await asegurarChatLite()}catch(e){alert(e.message||"No se pudo iniciar el chat.");return}const box=document.getElementById("chatLiteBody");box.insertAdjacentHTML("beforeend",`<div class="chat-msg user"><div class="chat-bubble">${escapeHtml(mensaje)}${chatLiteImagenBase64?`<img src="${chatLiteImagenBase64}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">✓ enviando...</div></div>`);box.scrollTop=box.scrollHeight;input.value="";const payload={action:"enviarmensajechatlanding",idChat:chatSessionId,chatSessionId:chatSessionId,pc:PC,usuarioJugador:userData.usuario,nombreCompleto:userData.nombre,telefono:userData.telefono,solicitudId:solicitudActual||"",mensaje:mensaje};if(chatLiteImagenBase64){payload.imagenBase64=chatLiteImagenBase64;payload.imagenNombre=chatLiteImagenNombre||"comprobante.png";payload.imagenUrl=chatLiteImagenBase64}const r=await api(payload);if(!r.ok){alert(r.error||"No se pudo enviar el mensaje.");return}quitarImagenChatLite();chatLiteMensajesCount=-1;await cargarChatLite()}
+
+function marcarUltimoMensajeChatLiteEnviado(){
+  const metas = document.querySelectorAll("#chatLiteBody .chat-msg.user .chat-meta");
+  const last = metas[metas.length - 1];
+  if(last) last.innerText = "✓ enviado · ahora";
+}
 function tomarImagenChatLiteFile(){const file=document.getElementById("chatLiteFile").files[0];if(file)leerImagenChatLite(file)}
 function leerImagenChatLite(file){if(!file.type.startsWith("image/")){alert("Adjuntá una imagen válida.");return}const reader=new FileReader();reader.onload=()=>{chatLiteImagenBase64=String(reader.result||"");chatLiteImagenNombre=file.name||"comprobante.png";document.getElementById("chatLitePreviewImg").src=chatLiteImagenBase64;document.getElementById("chatLitePreview").classList.add("show")};reader.readAsDataURL(file)}
 function quitarImagenChatLite(){chatLiteImagenBase64="";chatLiteImagenNombre="";document.getElementById("chatLiteFile").value="";document.getElementById("chatLitePreviewImg").src="";document.getElementById("chatLitePreview").classList.remove("show")}
