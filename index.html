@@ -242,7 +242,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px s
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbws1YOVztoy5I2fVXJC1V1lf4aPsEPx8yM_BetCchq0deTWhU7ahkwyIsBFI7aLazoJ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyEXuwshcjPsFcYZgUc5QWPT2wUUDemZBL3YsO_KgTPJ8jMgmGZ9nsJoyifAtfSWWOC/exec";
 
 let operador=null, pcOperativa=null;
 let solicitudes=[], billeteras=[], chats=[], chatMensajes=[];
@@ -282,6 +282,50 @@ async function api(data){
   const res=await fetch(API_URL,{method:"POST",body:fd});
   const text=await res.text();
   try{return JSON.parse(text)}catch(e){console.error(text);return{ok:false,error:"Respuesta inválida de API"}}
+}
+
+
+async function apiPostNoCors(data){
+  await fetch(API_URL, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(data)
+  });
+  return { ok:true };
+}
+
+function comprimirImagenChat(file, cb){
+  const img = new Image();
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    img.onload = () => {
+      const max = 1280;
+      let w = img.width;
+      let h = img.height;
+
+      if(w > h && w > max){
+        h = Math.round(h * max / w);
+        w = max;
+      }else if(h >= w && h > max){
+        w = Math.round(w * max / h);
+        h = max;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, w, h);
+
+      cb(canvas.toDataURL("image/jpeg", .74));
+    };
+
+    img.src = reader.result;
+  };
+
+  reader.readAsDataURL(file);
 }
 
 async function login(){
@@ -576,6 +620,14 @@ async function enviarChat(){
     payload.imagenBase64=chatImagenBase64;
     payload.imagenNombre=chatImagenNombre||"captura.png";
   }
+  if(chatImagenBase64){
+    await apiPostNoCors(payload);
+    document.getElementById("chatInput").value="";
+    quitarImagenChat();
+    setTimeout(()=>cargarChatActual(false),1800);
+    return;
+  }
+
   const r=await api(payload);
   if(!r.ok){alert(r.error||"Error");return}
   document.getElementById("chatInput").value="";
@@ -587,15 +639,17 @@ function tomarImagenChatFile(){
   if(file)leerImagenChat(file);
 }
 function leerImagenChat(file){
-  if(!file.type.startsWith("image/")){alert("Pegá o adjuntá una imagen válida.");return}
-  const reader=new FileReader();
-  reader.onload=()=>{
-    chatImagenBase64=String(reader.result||"");
-    chatImagenNombre=file.name||"captura.png";
-    document.getElementById("chatPreviewImg").src=chatImagenBase64;
+  if(!file.type.startsWith("image/")){
+    alert("Pegá o adjuntá una imagen válida.");
+    return;
+  }
+
+  comprimirImagenChat(file, base64 => {
+    chatImagenBase64 = base64;
+    chatImagenNombre = (file.name || "captura.jpg").replace(/\.[^.]+$/, ".jpg");
+    document.getElementById("chatPreviewImg").src = chatImagenBase64;
     document.getElementById("chatPreview").classList.add("show");
-  };
-  reader.readAsDataURL(file);
+  });
 }
 function quitarImagenChat(){
   chatImagenBase64="";
