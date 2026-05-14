@@ -273,16 +273,19 @@ function toast(msg,type="blue"){const div=document.createElement("div");div.clas
 function formatFecha(f){
   if(!f) return "";
 
-  const d = new Date(f);
+  const txt = String(f);
 
-  return d.toLocaleString("es-AR",{
-    timeZone:"America/Argentina/Buenos_Aires",
-    day:"2-digit",
-    month:"2-digit",
-    hour:"2-digit",
-    minute:"2-digit"
-  });
+  if(txt.includes("T")){
+    const partes = txt.split("T");
+    const fecha = partes[0].split("-");
+    const hora = partes[1].slice(0,5);
+
+    return `${fecha[2]}/${fecha[1]} · ${hora}`;
+  }
+
+  return txt;
 }
+
 function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
 function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
 function estadoBadge(e){const x=normalizar(e);if(esRealizada({ESTADO:e}))return`<span class="badge badge-ok">${e}</span>`;if(["RECHAZADA","ERROR"].includes(x))return`<span class="badge badge-danger">${e}</span>`;return`<span class="badge badge-pending">${e||"-"}</span>`}
