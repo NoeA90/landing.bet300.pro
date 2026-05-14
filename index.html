@@ -242,7 +242,7 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px s
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbye_BLPtuPb3-_nO7Q6lsNTl4oSriK0GJEJi2TG4E0qD8s6Aah36u0KmoQJ3WLgvkQU/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzlVB_XJfzM3motisAbg86_Dfd4fjCY4Yiu8GvHrymtqH-Z5r5bg0GSKkffT2e990iq/exec";
 
 let operador=null, pcOperativa=null;
 let solicitudes=[], billeteras=[], chats=[], chatMensajes=[];
@@ -571,11 +571,24 @@ async function abrirChat(id){
 }
 async function cargarChatActual(silencioso=false){
   if(!chatActualId)return;
-  const r=await api({action:"getchatlanding",usuario:operador.usuario,operador:operador.nombre,idChat:chatActualId,chatSessionId:chatActualId});
+  const r=await api({
+    action:"getchatlanding",
+    usuario:operador.usuario,
+    operador:operador.nombre,
+    idChat:chatActualId,
+    chatSessionId:chatActualId,
+    t:Date.now()
+  });
   if(!r.ok)return;
   chatMensajes=r.mensajes||[];
   renderChatMensajes();
-  await api({action:"marcarchatgeneralleido",usuario:operador.usuario,operador:operador.nombre,idChat:chatActualId,chatSessionId:chatActualId});
+  await api({
+    action:"marcarchatgeneralleido",
+    usuario:operador.usuario,
+    operador:operador.nombre,
+    idChat:chatActualId,
+    chatSessionId:chatActualId
+  });
   cargarChats(true);
 }
 
@@ -611,9 +624,15 @@ function renderChatMensajes(){
   box.scrollTop=box.scrollHeight;
 }
 async function enviarChat(){
-  if(!chatActualId){alert("Seleccioná un chat primero.");return}
+  if(!chatActualId){
+    alert("Seleccioná un chat primero.");
+    return;
+  }
+
   const mensaje=val("chatInput").trim();
+
   if(!mensaje && !chatImagenBase64)return;
+
   const payload={
     action:"enviarmensajechatlanding",
     idChat:chatActualId,
@@ -625,26 +644,34 @@ async function enviarChat(){
     tipoEmisor:"OPERADOR",
     mensaje
   };
+
   if(chatImagenBase64){
     payload.imagenUrl=chatImagenBase64;
     payload.imagenBase64=chatImagenBase64;
     payload.imagenNombre=chatImagenNombre||"captura.png";
   }
+
   if(chatImagenBase64){
-    agregarMensajeLocalPanel(mensaje, chatImagenBase64);
     await apiPostNoCors(payload);
-    marcarUltimoMensajePanelEnviado();
     document.getElementById("chatInput").value="";
     quitarImagenChat();
-    setTimeout(()=>cargarChatActual(false),2500);
+    setTimeout(()=>cargarChatActual(false),1500);
+    setTimeout(()=>cargarChatActual(false),3800);
     return;
   }
 
   const r=await api(payload);
-  if(!r.ok){alert(r.error||"Error");return}
+
+  if(!r.ok){
+    alert(r.error||"Error");
+    return;
+  }
+
   document.getElementById("chatInput").value="";
   quitarImagenChat();
-  await cargarChatActual(false);
+
+  setTimeout(()=>cargarChatActual(false),500);
+  setTimeout(()=>cargarChatActual(false),2000);
 }
 
 function agregarMensajeLocalPanel(mensaje, imagen){
