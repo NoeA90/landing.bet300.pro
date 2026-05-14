@@ -270,7 +270,9 @@ function normalizar(v){return String(v||"").trim().toUpperCase()}
 function setBox(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html}
 function val(id){return document.getElementById(id)?.value||""}
 function toast(msg,type="blue"){const div=document.createElement("div");div.className="toast";div.style.background=type==="red"?"#f04438":type==="green"?"#12b76a":"#3d5afe";div.innerText=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3500)}
-function formatFecha(f){const d=new Date(f);if(isNaN(d))return f||"";return d.toLocaleDateString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",day:"2-digit",month:"2-digit"})+" · "+d.toLocaleTimeString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",hour:"2-digit",minute:"2-digit"})}
+function formatFecha(f){
+  return f || "";
+}
 function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
 function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
 function estadoBadge(e){const x=normalizar(e);if(esRealizada({ESTADO:e}))return`<span class="badge badge-ok">${e}</span>`;if(["RECHAZADA","ERROR"].includes(x))return`<span class="badge badge-danger">${e}</span>`;return`<span class="badge badge-pending">${e||"-"}</span>`}
@@ -402,7 +404,7 @@ async function refrescarTodo(showToast=true){
 async function cargarSolicitudes(silencioso=false){
   const r=await api({action:"listarsolicitudesoperador",usuario:operador.usuario,operador:operador.nombre,pc:pcOperativa,pcOperativa});
   if(!r.ok){toast(r.error||"Error solicitudes","red");return}
-  solicitudes=(r.solicitudes||r.data||[]).slice().sort((a,b)=>new Date(b.FECHA_CREACION||b.FECHA||0)-new Date(a.FECHA_CREACION||a.FECHA||0));
+  solicitudes=(r.solicitudes||r.data||[]).slice().reverse();
   renderSolicitudes();
   renderInicio();
   verificarSolicitudes(silencioso);
