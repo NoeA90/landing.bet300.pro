@@ -442,7 +442,7 @@ button:disabled{
       </div>
 
       <div class="mini">
-        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por Chat.
+        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por WhatsApp.
       </div>
     </div>
 
@@ -453,14 +453,14 @@ button:disabled{
   </div>
 
   <div class="mini">
-    Importante: Realizá la transferencia con los datos de arriba,luego completa el formulario.
+    Guardá el comprobante de transferencia hasta que se confirme la carga.
   </div>
 
 </div>
 
 
 <button id="chatLiteOpenBtn" class="chat-lite-btn" type="button" onclick="abrirChatLite()">💬 Chateá con nosotros</button>
-<div id="chatLite" class="chat-lite hidden"><div class="chat-lite-head"><div class="chat-agent"><div class="chat-avatar">B</div><div><div class="chat-title">Soporte BET300</div><div id="chatLiteStatus" class="chat-status">Disponible para ayudarte</div></div></div><button class="chat-close" type="button" onclick="cerrarChatLite()">×</button></div><div id="chatLiteBody" class="chat-lite-body"><div class="chat-day">Chat de soporte</div><div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div></div><div class="chat-lite-compose"><div id="chatLitePreview" class="chat-preview"><div style="display:flex;align-items:center;gap:10px"><img id="chatLitePreviewImg" src="" alt="Comprobante"><div><b>Imagen adjunta</b><div class="chat-meta">Lista para enviar</div></div></div><button type="button" onclick="quitarImagenChatLite()">×</button></div><div class="chat-input-row"><button class="chat-file-btn" type="button" onclick="document.getElementById('chatLiteFile').click()">📎</button><textarea id="chatLiteInput" rows="1" placeholder="Escribí tu mensaje..."></textarea><button class="chat-send-btn" type="button" onclick="enviarChatLite()">➤</button></div><input id="chatLiteFile" type="file" accept="image/*" style="display:none" onchange="tomarImagenChatLiteFile()"><div class="chat-hint">Escriba su consulta.</div></div></div>
+<div id="chatLite" class="chat-lite hidden"><div class="chat-lite-head"><div class="chat-agent"><div class="chat-avatar">B</div><div><div class="chat-title">Soporte BET300</div><div id="chatLiteStatus" class="chat-status">Disponible para ayudarte</div></div></div><button class="chat-close" type="button" onclick="cerrarChatLite()">×</button></div><div id="chatLiteBody" class="chat-lite-body"><div class="chat-day">Chat de soporte</div><div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div></div><div class="chat-lite-compose"><div id="chatLitePreview" class="chat-preview"><div style="display:flex;align-items:center;gap:10px"><img id="chatLitePreviewImg" src="" alt="Comprobante"><div><b>Imagen adjunta</b><div class="chat-meta">Lista para enviar</div></div></div><button type="button" onclick="quitarImagenChatLite()">×</button></div><div class="chat-input-row"><button class="chat-file-btn" type="button" onclick="document.getElementById('chatLiteFile').click()">📎</button><textarea id="chatLiteInput" rows="1" placeholder="Escribí tu mensaje..."></textarea><button class="chat-send-btn" type="button" onclick="enviarChatLite()">➤</button></div><input id="chatLiteFile" type="file" accept="image/*" style="display:none" onchange="tomarImagenChatLiteFile()"><div class="chat-hint">Podés adjuntar comprobante desde tu celular o pegar captura con Ctrl + V.</div></div></div>
 
 <div id="successModal" class="success-modal hidden">
   <div class="success-box">
@@ -473,7 +473,7 @@ button:disabled{
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxbamlRZnRGW-4l9uF30RCNV97ZEsXes421JeVcqsmzlceThc6KioXSQaYZ4-4VGkSa/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbzlVB_XJfzM3motisAbg86_Dfd4fjCY4Yiu8GvHrymtqH-Z5r5bg0GSKkffT2e990iq/exec";
 
 const WHATSAPP_POR_PC = {
   P1: "5492235181171",
@@ -874,7 +874,25 @@ async function asegurarChatLite(){if(chatSessionId)return chatSessionId;const r=
 async function abrirChatLite(){if(!userData||!userData.usuario||!userData.nombre||!userData.telefono){mostrarRegistroMsg("Primero completá tus datos para iniciar el chat.",false);document.getElementById("registroCard").scrollIntoView({behavior:"smooth"});return}document.getElementById("chatLite").classList.remove("hidden");try{await asegurarChatLite();await cargarChatLite();iniciarTimerChatLite()}catch(e){document.getElementById("chatLiteStatus").innerText="No se pudo conectar"}}
 function cerrarChatLite(){document.getElementById("chatLite").classList.add("hidden")}
 function iniciarTimerChatLite(){if(chatLiteTimer)clearInterval(chatLiteTimer);chatLiteTimer=setInterval(cargarChatLite,4000)}
-async function cargarChatLite(){if(!chatSessionId)return;const r=await api({action:"getchatlanding",idChat:chatSessionId,chatSessionId:chatSessionId});if(!r.ok)return;const mensajes=r.mensajes||[];if(mensajes.length===chatLiteMensajesCount)return;chatLiteMensajesCount=mensajes.length;renderChatLite(mensajes)}
+async function cargarChatLite(){
+  if(!chatSessionId) return;
+
+  const r = await api({
+    action: "getchatlanding",
+    idChat: chatSessionId,
+    chatSessionId: chatSessionId,
+    t: Date.now()
+  });
+
+  if(!r.ok) {
+    console.warn("No se pudo cargar chat", r);
+    return;
+  }
+
+  const mensajes = r.mensajes || [];
+  chatLiteMensajesCount = mensajes.length;
+  renderChatLite(mensajes);
+}
 
 function normalizarImagenUrl(url){
   const u = String(url || "");
@@ -889,7 +907,75 @@ function renderChatLite(mensajes){const box=document.getElementById("chatLiteBod
 function estadoMensajeChat(leido){return leido?"✓✓ recibido":"✓ enviado"}
 function formatearHoraChat(f){const d=new Date(f);if(isNaN(d))return"";return d.toLocaleTimeString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",hour:"2-digit",minute:"2-digit"})}
 function escapeHtml(text){return String(text||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-async function enviarChatLite(){const input=document.getElementById("chatLiteInput");const mensaje=input.value.trim();if(!mensaje&&!chatLiteImagenBase64)return;try{await asegurarChatLite()}catch(e){alert(e.message||"No se pudo iniciar el chat.");return}const box=document.getElementById("chatLiteBody");box.insertAdjacentHTML("beforeend",`<div class="chat-msg user"><div class="chat-bubble">${escapeHtml(mensaje)}${chatLiteImagenBase64?`<img src="${chatLiteImagenBase64}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">✓ enviando...</div></div>`);box.scrollTop=box.scrollHeight;input.value="";const payload={action:"enviarmensajechatlanding",idChat:chatSessionId,chatSessionId:chatSessionId,pc:PC,usuarioJugador:userData.usuario,nombreCompleto:userData.nombre,telefono:userData.telefono,solicitudId:solicitudActual||"",mensaje:mensaje};if(chatLiteImagenBase64){payload.imagenBase64=chatLiteImagenBase64;payload.imagenNombre=chatLiteImagenNombre||"comprobante.jpg";await apiPostNoCors(payload);marcarUltimoMensajeChatLiteEnviado();quitarImagenChatLite();setTimeout(()=>{chatLiteMensajesCount=-1;cargarChatLite()},2600);return}const r=await api(payload);if(!r.ok){alert(r.error||"No se pudo enviar el mensaje.");return}quitarImagenChatLite();chatLiteMensajesCount=-1;await cargarChatLite()}
+async function enviarChatLite(){
+  const input = document.getElementById("chatLiteInput");
+  const mensaje = input.value.trim();
+
+  if(!mensaje && !chatLiteImagenBase64){
+    return;
+  }
+
+  try{
+    await asegurarChatLite();
+  }catch(e){
+    alert(e.message || "No se pudo iniciar el chat.");
+    return;
+  }
+
+  const box = document.getElementById("chatLiteBody");
+
+  box.insertAdjacentHTML("beforeend", `
+    <div class="chat-msg user">
+      <div class="chat-bubble">
+        ${escapeHtml(mensaje)}
+        ${chatLiteImagenBase64 ? `<img src="${chatLiteImagenBase64}" alt="Imagen adjunta">` : ""}
+      </div>
+      <div class="chat-meta">✓ enviando...</div>
+    </div>
+  `);
+
+  box.scrollTop = box.scrollHeight;
+  input.value = "";
+
+  const payload = {
+    action: "enviarmensajechatlanding",
+    idChat: chatSessionId,
+    chatSessionId: chatSessionId,
+    pc: PC,
+    usuarioJugador: userData.usuario,
+    nombreCompleto: userData.nombre,
+    telefono: userData.telefono,
+    solicitudId: solicitudActual || "",
+    mensaje: mensaje
+  };
+
+  if(chatLiteImagenBase64){
+    payload.imagenBase64 = chatLiteImagenBase64;
+    payload.imagenNombre = chatLiteImagenNombre || "comprobante.jpg";
+
+    await apiPostNoCors(payload);
+
+    marcarUltimoMensajeChatLiteEnviado();
+    quitarImagenChatLite();
+
+    setTimeout(cargarChatLite, 1800);
+    setTimeout(cargarChatLite, 4200);
+
+    return;
+  }
+
+  const r = await api(payload);
+
+  if(!r.ok){
+    alert(r.error || "No se pudo enviar el mensaje.");
+    return;
+  }
+
+  marcarUltimoMensajeChatLiteEnviado();
+  quitarImagenChatLite();
+
+  setTimeout(cargarChatLite, 700);
+}
 
 function marcarUltimoMensajeChatLiteEnviado(){
   const metas = document.querySelectorAll("#chatLiteBody .chat-msg.user .chat-meta");
