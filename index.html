@@ -271,7 +271,17 @@ function setBox(id,html){const el=document.getElementById(id);if(el)el.innerHTML
 function val(id){return document.getElementById(id)?.value||""}
 function toast(msg,type="blue"){const div=document.createElement("div");div.className="toast";div.style.background=type==="red"?"#f04438":type==="green"?"#12b76a":"#3d5afe";div.innerText=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3500)}
 function formatFecha(f){
-  return f || "";
+  if(!f) return "";
+
+  const d = new Date(f);
+
+  return d.toLocaleString("es-AR",{
+    timeZone:"America/Argentina/Buenos_Aires",
+    day:"2-digit",
+    month:"2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
+  });
 }
 function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
 function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
