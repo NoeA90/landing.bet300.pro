@@ -905,7 +905,21 @@ function normalizarImagenUrl(url){
 
 function renderChatLite(mensajes){const box=document.getElementById("chatLiteBody");let html=`<div class="chat-day">Chat de soporte</div>`;if(!mensajes.length){html+=`<div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div>`}mensajes.forEach(m=>{const tipo=String(m.TIPO_EMISOR||"").toUpperCase();const esUsuario=tipo==="USUARIO";const cls=esUsuario?"user":"operator";const hora=formatearHoraChat(m.FECHA);const leido=String(m.LEIDO||"").toUpperCase()==="SI";html+=`<div class="chat-msg ${cls}"><div class="chat-bubble">${escapeHtml(m.MENSAJE||"")}${m.IMAGEN_URL?`<img src="${normalizarImagenUrl(m.IMAGEN_URL)}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">${esUsuario?estadoMensajeChat(leido):"Soporte"} · ${hora}</div></div>`});box.innerHTML=html;box.scrollTop=box.scrollHeight}
 function estadoMensajeChat(leido){return leido?"✓✓ recibido":"✓ enviado"}
-function formatearHoraChat(f){const d=new Date(f);if(isNaN(d))return"";return d.toLocaleTimeString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",hour:"2-digit",minute:"2-digit"})}
+function formatFecha(f){
+  if(!f) return "";
+
+  const txt = String(f);
+
+  if(txt.includes("T")){
+    const partes = txt.split("T");
+    const fecha = partes[0].split("-");
+    const hora = partes[1].slice(0,5);
+
+    return `${fecha[2]}/${fecha[1]} · ${hora}`;
+  }
+
+  return txt;
+}
 function escapeHtml(text){return String(text||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function enviarChatLite(){
   const input = document.getElementById("chatLiteInput");
