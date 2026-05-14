@@ -535,21 +535,7 @@ async function api(params) {
     return { ok: false, error: "Respuesta inválida de API" };
   }
 }
-function formatFecha(f){
-  if(!f) return "";
 
-  const txt = String(f);
-
-  if(txt.includes("T")){
-    const partes = txt.split("T");
-    const fecha = partes[0].split("-");
-    const hora = partes[1].slice(0,5);
-
-    return `${fecha[2]}/${fecha[1]} · ${hora}`;
-  }
-
-  return txt;
-}
 
 async function apiPostNoCors(data){
   await fetch(API_URL, {
