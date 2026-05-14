@@ -442,7 +442,7 @@ button:disabled{
       </div>
 
       <div class="mini">
-        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por WhatsApp.
+        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por Chat.
       </div>
     </div>
 
@@ -453,14 +453,14 @@ button:disabled{
   </div>
 
   <div class="mini">
-    Guardá el comprobante de transferencia hasta que se confirme la carga.
+    Importante: Realizá la transferencia con los datos de arriba,luego completa el formulario.
   </div>
 
 </div>
 
 
 <button id="chatLiteOpenBtn" class="chat-lite-btn" type="button" onclick="abrirChatLite()">💬 Chateá con nosotros</button>
-<div id="chatLite" class="chat-lite hidden"><div class="chat-lite-head"><div class="chat-agent"><div class="chat-avatar">B</div><div><div class="chat-title">Soporte BET300</div><div id="chatLiteStatus" class="chat-status">Disponible para ayudarte</div></div></div><button class="chat-close" type="button" onclick="cerrarChatLite()">×</button></div><div id="chatLiteBody" class="chat-lite-body"><div class="chat-day">Chat de soporte</div><div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div></div><div class="chat-lite-compose"><div id="chatLitePreview" class="chat-preview"><div style="display:flex;align-items:center;gap:10px"><img id="chatLitePreviewImg" src="" alt="Comprobante"><div><b>Imagen adjunta</b><div class="chat-meta">Lista para enviar</div></div></div><button type="button" onclick="quitarImagenChatLite()">×</button></div><div class="chat-input-row"><button class="chat-file-btn" type="button" onclick="document.getElementById('chatLiteFile').click()">📎</button><textarea id="chatLiteInput" rows="1" placeholder="Escribí tu mensaje..."></textarea><button class="chat-send-btn" type="button" onclick="enviarChatLite()">➤</button></div><input id="chatLiteFile" type="file" accept="image/*" style="display:none" onchange="tomarImagenChatLiteFile()"><div class="chat-hint">Podés adjuntar comprobante desde tu celular o pegar captura con Ctrl + V.</div></div></div>
+<div id="chatLite" class="chat-lite hidden"><div class="chat-lite-head"><div class="chat-agent"><div class="chat-avatar">B</div><div><div class="chat-title">Soporte BET300</div><div id="chatLiteStatus" class="chat-status">Disponible para ayudarte</div></div></div><button class="chat-close" type="button" onclick="cerrarChatLite()">×</button></div><div id="chatLiteBody" class="chat-lite-body"><div class="chat-day">Chat de soporte</div><div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div></div><div class="chat-lite-compose"><div id="chatLitePreview" class="chat-preview"><div style="display:flex;align-items:center;gap:10px"><img id="chatLitePreviewImg" src="" alt="Comprobante"><div><b>Imagen adjunta</b><div class="chat-meta">Lista para enviar</div></div></div><button type="button" onclick="quitarImagenChatLite()">×</button></div><div class="chat-input-row"><button class="chat-file-btn" type="button" onclick="document.getElementById('chatLiteFile').click()">📎</button><textarea id="chatLiteInput" rows="1" placeholder="Escribí tu mensaje..."></textarea><button class="chat-send-btn" type="button" onclick="enviarChatLite()">➤</button></div><input id="chatLiteFile" type="file" accept="image/*" style="display:none" onchange="tomarImagenChatLiteFile()"><div class="chat-hint">Escriba su consulta.</div></div></div>
 
 <div id="successModal" class="success-modal hidden">
   <div class="success-box">
@@ -473,7 +473,7 @@ button:disabled{
 </div>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbye_BLPtuPb3-_nO7Q6lsNTl4oSriK0GJEJi2TG4E0qD8s6Aah36u0KmoQJ3WLgvkQU/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxbamlRZnRGW-4l9uF30RCNV97ZEsXes421JeVcqsmzlceThc6KioXSQaYZ4-4VGkSa/exec";
 
 const WHATSAPP_POR_PC = {
   P1: "5492235181171",
