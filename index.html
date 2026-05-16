@@ -277,9 +277,11 @@ function setBox(id,html){const el=document.getElementById(id);if(el)el.innerHTML
 function val(id){return document.getElementById(id)?.value||""}
 function toast(msg,type="blue"){const div=document.createElement("div");div.className="toast";div.style.background=type==="red"?"#f04438":type==="green"?"#12b76a":"#3d5afe";div.innerText=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3500)}
 function formatFecha(fechaRaw){
+
   if(!fechaRaw) return "";
 
   try{
+
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -292,18 +294,23 @@ function formatFecha(fechaRaw){
       month:"2-digit",
       hour:"2-digit",
       minute:"2-digit",
+      second:"2-digit",
       hour12:false
     }).replace(",", " ·");
 
   }catch(e){
+
     return String(fechaRaw || "");
+
   }
 }
 
 function formatearHoraChat(fechaRaw){
+
   if(!fechaRaw) return "";
 
   try{
+
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -314,14 +321,16 @@ function formatearHoraChat(fechaRaw){
       timeZone:"America/Argentina/Buenos_Aires",
       hour:"2-digit",
       minute:"2-digit",
+      second:"2-digit",
       hour12:false
     });
 
   }catch(e){
+
     return "";
+
   }
 }
-
 
 function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
 function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
@@ -607,12 +616,25 @@ async function cargarBilleteras(render=true){
   renderInicio();
 }
 async function cargarChats(silencioso=false){
-  const r=await api({action:"listarchatspendientes",usuario:operador.usuario,operador:operador.nombre,pc:pcOperativa,pcOperativa});
-  if(!r.ok){return}
-  chats=r.chats||r.data||[];
+
+  const { data, error } = await supabaseClient
+    .from("chat_sesiones")
+    .select("*")
+    .eq("pc_codigo", pcOperativa)
+    .order("created_at",{ascending:false});
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  chats = data || [];
+
   renderChatList();
-  renderInicio();
-  verificarChats(silencioso);
+
+  if(!silencioso){
+    renderInicio();
+  }
 }
 function renderInicio(){
   const pendientes=solicitudes.filter(esPendiente);
@@ -821,27 +843,24 @@ async function abrirChat(id){
   renderChatList();
   await cargarChatActual(false);
 }
-async function cargarChatActual(silencioso=false){
-  if(!chatActualId)return;
-  const r=await api({
-    action:"getchatlanding",
-    usuario:operador.usuario,
-    operador:operador.nombre,
-    idChat:chatActualId,
-    chatSessionId:chatActualId,
-    t:Date.now()
-  });
-  if(!r.ok)return;
-  chatMensajes=r.mensajes||[];
+async function cargarChatActual(){
+
+  if(!chatActualId) return;
+
+  const { data, error } = await supabaseClient
+    .from("chat_mensajes")
+    .select("*")
+    .eq("chat_id", chatActualId)
+    .order("created_at",{ascending:true});
+
+  if(error){
+    console.error(error);
+    return;
+  }
+
+  chatMensajes = data || [];
+
   renderChatMensajes();
-  await api({
-    action:"marcarchatgeneralleido",
-    usuario:operador.usuario,
-    operador:operador.nombre,
-    idChat:chatActualId,
-    chatSessionId:chatActualId
-  });
-  cargarChats(true);
 }
 
 function normalizarImagenUrl(url){
