@@ -949,20 +949,24 @@ async function crearSolicitudSupabase(monto, tipo="CARGA"){
 
   const esRetiro = String(tipo || "CARGA").toUpperCase() === "RETIRO";
 
+  const payload = {
+    usuario: userData.usuario,
+    nombre_completo: userData.nombre,
+    telefono: userData.telefono,
+    pc_codigo: PC,
+    tipo: esRetiro ? "RETIRO" : "CARGA",
+    monto: Number(monto),
+    estado: "PENDIENTE",
+    chat_id: chatSessionId || null
+  };
+
+  if(!esRetiro){
+    payload.billetera_nombre = billeteraActiva?.NOMBRE_VISIBLE || billeteraActiva?.BILLETERA_NOMBRE || "";
+  }
+
   const { data, error } = await supabaseClient
     .from("solicitudes")
-    .insert({
-      usuario: userData.usuario,
-      nombre_completo: userData.nombre,
-      telefono: userData.telefono,
-      pc_codigo: PC,
-      tipo: esRetiro ? "RETIRO" : "CARGA",
-      monto: Number(monto),
-      estado: "PENDIENTE",
-      chat_id: chatSessionId || null,
-      billetera_nombre: esRetiro ? "" : (billeteraActiva?.NOMBRE_VISIBLE || billeteraActiva?.BILLETERA_NOMBRE || ""),
-      billetera_id: esRetiro ? "" : (billeteraActiva?.ID_BILLETERA || "")
-    })
+    .insert(payload)
     .select()
     .single();
 
