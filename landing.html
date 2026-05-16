@@ -985,6 +985,27 @@ async function crearSolicitudSupabase(monto, tipo="CARGA"){
     solicitud:data
   };
 }
+
+ function resetLandingEstado(){
+
+  solicitudActual = null;
+
+  localStorage.removeItem("solicitud_activa");
+  localStorage.removeItem("solicitud_id");
+  localStorage.removeItem("solicitud_tipo");
+
+  const progreso = document.getElementById("estadoSolicitudBox");
+
+  if(progreso){
+    progreso.style.display = "none";
+  }
+
+  const modal = document.getElementById("modalConfirmacion");
+
+  if(modal){
+    modal.classList.remove("show");
+  }
+} 
 /* === CHAT LITE PRO === */
 const LS_CHAT="bet300_chat_"+PC;let chatSessionId=localStorage.getItem(LS_CHAT)||"";let chatLiteImagenBase64="";let chatLiteImagenNombre="";let chatLiteTimer=null;let chatLiteMensajesCount=0;
 async function asegurarChatLite(){
