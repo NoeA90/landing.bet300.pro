@@ -984,6 +984,107 @@ function cerrarModal(){document.getElementById("modalOverlay").classList.add("hi
 function abrirMenuMobile(){const menu=document.getElementById("mobileMenu");menu.classList.add("open");menu.innerHTML="";const clone=document.getElementById("sidebar").cloneNode(true);clone.style.display="block";menu.appendChild(clone)}
 function cerrarMenuMobile(e){if(!e||e.target.id==="mobileMenu"){const menu=document.getElementById("mobileMenu");menu.classList.remove("open");menu.innerHTML=""}}
 function cerrarSesion(){localStorage.removeItem("nodo_operador_lite");localStorage.removeItem("nodo_pc_operativa_lite");location.reload()}
+<!-- PATCH CHAT SUPABASE LANDING -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "REEMPLAZAR_URL";
+const SUPABASE_KEY = "REEMPLAZAR_KEY";
+
+const supabaseClient = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+let chatSessionId = "";
+let realtimeChatChannel = null;
+
+async function crearChatSesionSupabase(){
+
+  if(chatSessionId) return chatSessionId;
+
+  const payload = {
+    chat_id: crypto.randomUUID(),
+    usuario: userData.usuario || "",
+    telefono: userData.telefono || "",
+    pc_codigo: PC
+  };
+
+  const { data, error } = await supabaseClient
+    .from("chat_sesiones")
+    .insert(payload)
+    .select()
+    .single();
+
+  if(error){
+    console.error(error);
+    return "";
+  }
+
+  chatSessionId = data.chat_id;
+
+  iniciarRealtimeChatLanding();
+
+  return chatSessionId;
+}
+
+async function enviarMensajeChatSupabase(mensaje="", imagenUrl=""){
+
+  await crearChatSesionSupabase();
+
+  const { error } = await supabaseClient
+    .from("chat_mensajes")
+    .insert({
+      chat_id: chatSessionId,
+      tipo_emisor: "USUARIO",
+      emisor: userData.usuario || "Usuario",
+      mensaje: mensaje || "",
+      imagen_url: imagenUrl || ""
+    });
+
+  if(error){
+    console.error(error);
+    return false;
+  }
+
+  return true;
+}
+
+function iniciarRealtimeChatLanding(){
+
+  if(realtimeChatChannel){
+    supabaseClient.removeChannel(realtimeChatChannel);
+  }
+
+  realtimeChatChannel = supabaseClient
+    .channel("chat_landing_" + chatSessionId)
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"chat_mensajes",
+        filter:"chat_id=eq." + chatSessionId
+      },
+      payload => {
+
+        const m = payload.new;
+
+        if(m.tipo_emisor === "OPERADOR"){
+          agregarMensajeChat(
+            "OPERADOR",
+            m.mensaje || "",
+            m.imagen_url || "",
+            m.created_at || ""
+          );
+        }
+
+      }
+    )
+    .subscribe();
+}
+</script>
+
 </script>
 </body>
 </html>
