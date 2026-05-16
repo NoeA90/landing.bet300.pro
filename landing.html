@@ -873,13 +873,13 @@ async function asegurarChatLite(){
 
   if(chatSessionId){
 
-    const { data: existente } = await supabaseClient
+    const { data: existente, error } = await supabaseClient
       .from("chat_sesiones")
       .select("chat_id")
       .eq("chat_id", chatSessionId)
       .maybeSingle();
 
-    if(existente){
+    if(existente && !error){
       iniciarRealtimeChatLanding();
       return chatSessionId;
     }
@@ -932,7 +932,7 @@ async function cargarChatLite(){
     .order("created_at",{ascending:true});
 
   if(error){
-    console.error("Error cargando chat_mensajes:", error);
+    console.error("Error cargando chat:", error);
     return;
   }
 
@@ -945,9 +945,9 @@ async function cargarChatLite(){
   }));
 
   chatLiteMensajesCount = mensajes.length;
+
   renderChatLite(mensajes);
 }
-
 
 
   
@@ -965,9 +965,11 @@ function normalizarImagenUrl(url){
 function renderChatLite(mensajes){const box=document.getElementById("chatLiteBody");let html=`<div class="chat-day">Chat de soporte</div>`;if(!mensajes.length){html+=`<div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div>`}mensajes.forEach(m=>{const tipo=String(m.TIPO_EMISOR||"").toUpperCase();const esUsuario=tipo==="USUARIO";const cls=esUsuario?"user":"operator";const hora=formatearHoraChat(m.FECHA);const leido=String(m.LEIDO||"").toUpperCase()==="SI";html+=`<div class="chat-msg ${cls}"><div class="chat-bubble">${escapeHtml(m.MENSAJE||"")}${m.IMAGEN_URL?`<img src="${normalizarImagenUrl(m.IMAGEN_URL)}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">${esUsuario?estadoMensajeChat(leido):"Soporte"} · ${hora}</div></div>`});box.innerHTML=html;box.scrollTop=box.scrollHeight}
 function estadoMensajeChat(leido){return leido?"✓✓ recibido":"✓ enviado"}
 function formatFecha(fechaRaw){
+
   if(!fechaRaw) return "";
 
   try{
+
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -980,18 +982,23 @@ function formatFecha(fechaRaw){
       month:"2-digit",
       hour:"2-digit",
       minute:"2-digit",
+      second:"2-digit",
       hour12:false
     }).replace(",", " ·");
 
   }catch(e){
-    return "";
+
+    return String(fechaRaw || "");
+
   }
 }
 
 function formatearHoraChat(fechaRaw){
+
   if(!fechaRaw) return "";
 
   try{
+
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -1002,17 +1009,21 @@ function formatearHoraChat(fechaRaw){
       timeZone:"America/Argentina/Buenos_Aires",
       hour:"2-digit",
       minute:"2-digit",
+      second:"2-digit",
       hour12:false
     });
 
   }catch(e){
+
     return "";
+
   }
 }
 function escapeHtml(text){return String(text||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function enviarChatLite(){
-  const input = document.getElementById("chatLiteInput");
-  const mensaje = input.value.trim();
+
+  const input=document.getElementById("chatLiteInput");
+  const mensaje=input.value.trim();
 
   if(!mensaje && !chatLiteImagenBase64){
     return;
@@ -1025,38 +1036,28 @@ async function enviarChatLite(){
     return;
   }
 
-  const box = document.getElementById("chatLiteBody");
+  input.value="";
 
-  box.insertAdjacentHTML("beforeend", `
-    <div class="chat-msg user">
-      <div class="chat-bubble">
-        ${escapeHtml(mensaje)}
-        ${chatLiteImagenBase64 ? `<img src="${chatLiteImagenBase64}" alt="Imagen adjunta">` : ""}
-      </div>
-      <div class="chat-meta">✓ enviando...</div>
-    </div>
-  `);
+  const { error } = await supabaseClient
+    .from("chat_mensajes")
+    .insert({
+      chat_id: chatSessionId,
+      tipo_emisor: "USUARIO",
+      emisor: userData?.usuario || "Usuario",
+      mensaje: mensaje || "",
+      imagen_url: chatLiteImagenBase64 || ""
+    });
 
-  box.scrollTop = box.scrollHeight;
-  input.value = "";
-
-  const ok = await enviarMensajeChatSupabase(
-    mensaje,
-    chatLiteImagenBase64 || ""
-  );
-
-  if(!ok){
-    alert("No se pudo enviar el mensaje.");
+  if(error){
+    console.error(error);
+    alert("No se pudo enviar.");
     return;
   }
 
-  marcarUltimoMensajeChatLiteEnviado();
   quitarImagenChatLite();
 
-  setTimeout(cargarChatLite, 500);
-  setTimeout(cargarChatLite, 1500);
+  await cargarChatLite();
 }
-
 async function enviarMensajeChatSupabase(mensaje="", imagenUrl=""){
 
   try{
@@ -1116,7 +1117,42 @@ function iniciarRealtimeChatLanding(){
     .subscribe();
 }
 
+let realtimeChatChannel = null;
 
+function iniciarRealtimeChatLanding(){
+
+  if(!chatSessionId) return;
+
+  if(realtimeChatChannel){
+    supabaseClient.removeChannel(realtimeChatChannel);
+  }
+
+  realtimeChatChannel = supabaseClient
+    .channel("chat_landing_" + chatSessionId)
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"chat_mensajes",
+        filter:"chat_id=eq." + chatSessionId
+      },
+      payload => {
+
+        const m = payload.new;
+
+        if(
+          String(m.tipo_emisor || "").toUpperCase() === "OPERADOR"
+        ){
+          cargarChatLite();
+        }
+
+      }
+    )
+
+    .subscribe();
+}
 function marcarUltimoMensajeChatLiteEnviado(){
   const metas = document.querySelectorAll("#chatLiteBody .chat-msg.user .chat-meta");
   const last = metas[metas.length - 1];
