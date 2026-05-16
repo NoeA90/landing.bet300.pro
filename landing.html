@@ -869,8 +869,8 @@ async function asegurarChatLite(){
 
   const payload = {
     chat_id: crypto.randomUUID(),
-    usuario: userData?.usuario  ||,
-    telefono: userData?.telefono  ||,
+    usuario: userData?.usuario  ||"",
+    telefono: userData?.telefono  ||"",
     pc_codigo: PC
   };
 
