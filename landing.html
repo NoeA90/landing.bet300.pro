@@ -412,7 +412,7 @@ button:disabled{
     <label>Monto a cargar *</label>
     <input id="monto" type="number" placeholder="ej: 5000">
 
-    <button id="btnEnviar" onclick="CrearSolicitudSupabase(monto)">Enviar solicitud</button>
+    <button id="btnEnviar" onclick="crearSolicitud()">Enviar solicitud</button>
 
     <div id="resultado" class="result"></div>
 
@@ -747,16 +747,7 @@ async function crearSolicitud() {
   document.getElementById("btnEnviar").disabled = true;
   document.getElementById("btnEnviar").innerText = "Enviando...";
 
-  const r = await crearSolicitudSupabase(monto)({
-    action: "crearsolicitud",
-    pc: PC,
-    idBilletera: billeteraActiva.ID_BILLETERA,
-    tipoSolicitud: "CARGA",
-    usuarioJugador: userData.usuario,
-    nombreCompleto: userData.nombre,
-    telefono: userData.telefono,
-    monto
-  });
+  const r = await crearSolicitudSupabase(monto);
 
   document.getElementById("btnEnviar").disabled = false;
   document.getElementById("btnEnviar").innerText = "Enviar solicitud";
@@ -1046,7 +1037,7 @@ console.log("Supabase conectado ✅");
   console.log("TEST SUPABASE ERROR:", error);
 }
 
-testSupabase(); 
+// testSupabase(); 
 
  async function testCrearSolicitudSupabase (){
    const {data, error} = await supabaseClient
@@ -1065,8 +1056,8 @@ testSupabase();
 console.log("TEST CREAR SOLICITUD DATA:", data);
 console.log("TEST CREAR SOLICITUD ERROR:", error);  
 }
-//testCrearSolicitudSupabase
-async function CrearSolicitudSupabase(monto){
+// testCrearSolicitudSupabase();
+async function crearSolicitudSupabase(monto){
    const {data, error} = await supabaseClient
     .from("solicitudes")
     .insert({
@@ -1082,7 +1073,7 @@ async function CrearSolicitudSupabase(monto){
     .select()
     .single();
   if (error) {
-    console.error("Error creando solicitud Spabase.", error);
+    console.error("Error creando solicitud Supabase:", error);
     return {
       ok:false,
       error:error.message || "No se pudo crear la solicitud."
@@ -1100,3 +1091,5 @@ async function CrearSolicitudSupabase(monto){
 </script>
 </body>
 </html>
+landing_bet300_supabase_solicitud_fix_v1.html
+34 KB
