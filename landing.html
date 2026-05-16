@@ -861,24 +861,71 @@ function mostrarResultado(texto, ok) {
 
 /* === CHAT LITE PRO === */
 const LS_CHAT="bet300_chat_"+PC;let chatSessionId=localStorage.getItem(LS_CHAT)||"";let chatLiteImagenBase64="";let chatLiteImagenNombre="";let chatLiteTimer=null;let chatLiteMensajesCount=0;
-async function asegurarChatLite(){if(chatSessionId)return chatSessionId;const r=await api({action:"crearchatlanding",pc:PC,usuarioJugador:userData?.usuario||"",nombreCompleto:userData?.nombre||"",telefono:userData?.telefono||""});if(!r.ok)throw new Error(r.error||"No se pudo iniciar el chat.");chatSessionId=r.idChat;localStorage.setItem(LS_CHAT,chatSessionId);return chatSessionId}
+async function asegurarChatLite(){
+
+  if(chatSessionId){
+    return chatSessionId;
+  }
+
+  const payload = {
+    chat_id: crypto.randomUUID(),
+    usuario: userData?.usuario  "",
+    telefono: userData?.telefono  "",
+    pc_codigo: PC
+  };
+
+  const { data, error } = await supabaseClient
+    .from("chat_sesiones")
+    .insert(payload)
+    .select()
+    .single();
+
+  if(error){
+    console.error(error);
+    throw new Error("No se pudo iniciar el chat.");
+  }
+
+  chatSessionId = data.chat_id;
+
+  localStorage.setItem(LS_CHAT, chatSessionId);
+
+  iniciarRealtimeChatLanding();
+
+  return chatSessionId;
+}
 async function abrirChatLite(){if(!userData||!userData.usuario||!userData.nombre||!userData.telefono){mostrarRegistroMsg("Primero completá tus datos para iniciar el chat.",false);document.getElementById("registroCard").scrollIntoView({behavior:"smooth"});return}document.getElementById("chatLite").classList.remove("hidden");try{await asegurarChatLite();await cargarChatLite();iniciarTimerChatLite()}catch(e){document.getElementById("chatLiteStatus").innerText="No se pudo conectar"}}
 function cerrarChatLite(){document.getElementById("chatLite").classList.add("hidden")}
 function iniciarTimerChatLite(){if(chatLiteTimer)clearInterval(chatLiteTimer);chatLiteTimer=setInterval(cargarChatLite,2500)}
 async function cargarChatLite(){
+
   if(!chatSessionId) return;
 
-  const r = await api({
-    action: "getchatlanding",
-    idChat: chatSessionId,
-    chatSessionId: chatSessionId,
-    t: Date.now()
-  });
+  const { data, error } = await supabaseClient
+    .from("chat_mensajes")
+    .select("*")
+    .eq("chat_id", chatSessionId)
+    .order("created_at",{ascending:true});
 
-  if(!r.ok) {
-    console.warn("No se pudo cargar chat", r);
+  if(error){
+    console.error(error);
     return;
   }
+
+  const mensajes = data || [];
+
+  chatLiteMensajesCount = mensajes.length;
+
+  renderChatLite(
+    mensajes.map(m=>({
+      TIPO_EMISOR:m.tipo_emisor,
+      MENSAJE:m.mensaje,
+      IMAGEN_URL:m.imagen_url,
+      FECHA:m.created_at,
+      LEIDO:"SI"
+    }))
+  );
+}
+
 
   const mensajes = r.mensajes || [];
   chatLiteMensajesCount = mensajes.length;
@@ -1002,7 +1049,6 @@ async function enviarChatLite(){
   setTimeout(cargarChatLite, 700);
   setTimeout(cargarChatLite, 2200);
 }
-
 function marcarUltimoMensajeChatLiteEnviado(){
   const metas = document.querySelectorAll("#chatLiteBody .chat-msg.user .chat-meta");
   const last = metas[metas.length - 1];
