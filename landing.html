@@ -747,7 +747,7 @@ async function crearSolicitud() {
   document.getElementById("btnEnviar").disabled = true;
   document.getElementById("btnEnviar").innerText = "Enviando...";
 
-  const r = await api({
+  const r = await crearSolicitudSupabase(monto)({
     action: "crearsolicitud",
     pc: PC,
     idBilletera: billeteraActiva.ID_BILLETERA,
@@ -1065,7 +1065,30 @@ testSupabase();
 console.log("TEST CREAR SOLICITUD DATA:", data);
 console.log("TEST CREAR SOLICITUD ERROR:", error);  
 }
-testCrearSolicitudSupabase();
+//testCrearSolicitudSupabase
+async function CrearSolicitudSupabase(monto){
+   const {data, error} = await supabaseClient
+    .from("solicitudes")
+    .insert({
+      usuario: userData.usuario,
+      nombre_completo: userData.nombre,
+      telefono: userData.telefono,
+      pc_codigo: PC,
+      tipo: "CARGA",
+      monto: Number(monto),
+      estado: "PENDIENTE"
+      chat_id: chatSessionId || null
+   })
+    .select()
+    .single();
+  if (error) {
+    console.error("Error creando solicitud Spabase.", error);
+    return {
+      ok:false,
+      error:error.message || "No se pudo crear la solicitud."
+   })
+        
+  
 </script>
 </body>
 </html>
