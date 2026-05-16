@@ -281,7 +281,6 @@ function formatFecha(fechaRaw){
   if(!fechaRaw) return "";
 
   try{
-
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -294,14 +293,11 @@ function formatFecha(fechaRaw){
       month:"2-digit",
       hour:"2-digit",
       minute:"2-digit",
-      second:"2-digit",
       hour12:false
     }).replace(",", " ·");
 
   }catch(e){
-
     return String(fechaRaw || "");
-
   }
 }
 
@@ -310,7 +306,6 @@ function formatearHoraChat(fechaRaw){
   if(!fechaRaw) return "";
 
   try{
-
     const fecha = new Date(fechaRaw);
 
     if(isNaN(fecha)){
@@ -321,14 +316,11 @@ function formatearHoraChat(fechaRaw){
       timeZone:"America/Argentina/Buenos_Aires",
       hour:"2-digit",
       minute:"2-digit",
-      second:"2-digit",
       hour12:false
     });
 
   }catch(e){
-
     return "";
-
   }
 }
 
@@ -512,7 +504,7 @@ function iniciarRealtimeSolicitudes(){
   }
 
   supabaseSolicitudesChannel = supabaseClient
-    .channel("solicitudes_" + pcOperativa)
+    .channel("operativo_" + pcOperativa)
 
     .on(
       "postgres_changes",
@@ -527,12 +519,23 @@ function iniciarRealtimeSolicitudes(){
         cargarSolicitudes(true);
 
         if(payload.eventType === "INSERT"){
-
           toast("🔔 Nueva solicitud");
           sonido("solicitud");
-
         }
 
+      }
+    )
+
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"chat_sesiones",
+        filter:"pc_codigo=eq." + pcOperativa
+      },
+      payload => {
+        cargarChats(true);
       }
     )
 
@@ -545,32 +548,25 @@ function iniciarRealtimeSolicitudes(){
       },
       payload => {
 
-        const nuevo = payload.new;
+        const nuevo = payload.new || {};
 
-        if(
-          String(nuevo.tipo_emisor || "").toUpperCase() === "USUARIO"
-        ){
-
+        if(String(nuevo.tipo_emisor || "").toUpperCase() === "USUARIO"){
           toast("💬 Nuevo mensaje de chat");
           sonido("chat");
-
         }
 
-        if(
-          chatActualId &&
-          String(nuevo.chat_id) === String(chatActualId)
-        ){
+        cargarChats(true);
 
-          cargarMensajesChatSupabase(chatActualId);
-
+        if(chatActualId && String(nuevo.chat_id) === String(chatActualId)){
+          cargarChatActual();
         }
-
-        cargarChatsSupabase();
 
       }
     )
 
-    .subscribe();
+    .subscribe(status => {
+      console.log("Realtime operativo:", status);
+    });
 }
 
 function mostrarVista(vista){
@@ -617,54 +613,66 @@ async function cargarBilleteras(render=true){
 }
 async function cargarChats(silencioso=false){
 
-  const { data, error } = await supabaseClient
+  const { data: sesiones, error } = await supabaseClient
     .from("chat_sesiones")
-    .select(`
-      *,
-      chat_mensajes(
-        mensaje,
-        tipo_emisor,
-        created_at
-      )
-    `)
+    .select("*")
     .eq("pc_codigo", pcOperativa)
     .order("created_at",{ascending:false});
 
   if(error){
-    console.error(error);
+    console.error("Error cargando chat_sesiones:", error);
     return;
   }
 
-  chats = (data || []).map(c => {
+  const ids = (sesiones || []).map(c => c.chat_id).filter(Boolean);
 
-    const mensajes = c.chat_mensajes || [];
+  let mensajes = [];
 
-    const ultimo = mensajes.length
-      ? mensajes[mensajes.length - 1]
-      : null;
+  if(ids.length){
+    const { data: mensajesData, error: errorMensajes } = await supabaseClient
+      .from("chat_mensajes")
+      .select("*")
+      .in("chat_id", ids)
+      .order("created_at",{ascending:true});
 
-    const sinLeer = mensajes.filter(m =>
+    if(errorMensajes){
+      console.error("Error cargando chat_mensajes:", errorMensajes);
+    }else{
+      mensajes = mensajesData || [];
+    }
+  }
+
+  chats = (sesiones || []).map(c => {
+
+    const ms = mensajes.filter(m => String(m.chat_id) === String(c.chat_id));
+    const ultimo = ms.length ? ms[ms.length - 1] : null;
+
+    const sinLeer = ms.filter(m =>
       String(m.tipo_emisor || "").toUpperCase() === "USUARIO"
     ).length;
 
     return {
       ID_CHAT: c.chat_id,
+      chat_id: c.chat_id,
       USUARIO: c.usuario || "Usuario",
       NOMBRE_COMPLETO: c.usuario || "",
       TELEFONO: c.telefono || "",
       FECHA: c.created_at,
       FECHA_ULTIMO: ultimo?.created_at || c.created_at,
-      ULTIMO_MENSAJE: ultimo?.mensaje || "",
+      ULTIMO_MENSAJE: ultimo?.mensaje || (ultimo?.imagen_url ? "Imagen adjunta" : ""),
       SIN_LEER: sinLeer,
-      SOLICITUD_ID: c.solicitud_id || ""
+      SOLICITUD_ID: c.solicitud_id || "",
+      ESTADO: c.estado || "ABIERTO"
     };
 
   });
 
   renderChatList();
+  verificarChats(true);
+  renderInicio();
 
   if(!silencioso){
-    renderInicio();
+    console.log("Chats cargados:", chats.length);
   }
 }
 function renderInicio(){
@@ -853,20 +861,28 @@ async function cambiarEstadoBilletera(id,estado){
 }
 
 function renderChatList(){
-  if(!chats.length){setBox("chatList",`<div class="alert-box" style="margin:12px">No hay chats activos.</div>`);return}
+  if(!chats.length){
+    setBox("chatList",`<div class="alert-box" style="margin:12px">No hay chats activos.</div>`);
+    return;
+  }
+
   let html="";
+
   chats.forEach(c=>{
-    const id=c.ID_CHAT||c.idChat||"";
+    const id = c.ID_CHAT || c.chat_id || "";
     const unread=Number(c.SIN_LEER||0);
-    html+=`<div class="chat-item ${id===chatActualId?"active":""}" onclick="abrirChat('${id}')">
+
+    html+=`<div class="chat-item ${String(id)===String(chatActualId)?"active":""}" onclick="abrirChat('${id}')">
       <div class="chat-item-title">
-        <span>${c.USUARIO||"Usuario landing"}</span>
+        <span>${escapeHtml(c.USUARIO||"Usuario landing")}</span>
         ${unread?`<span class="chat-unread">${unread}</span>`:""}
       </div>
-      <div class="small">${c.NOMBRE_COMPLETO||""} · ${formatFecha(c.FECHA_ULTIMO||c.FECHA||"")}</div>
+      <div class="small">${escapeHtml(c.NOMBRE_COMPLETO||"")} ${c.TELEFONO ? "· "+escapeHtml(c.TELEFONO) : ""}</div>
+      <div class="small">${formatFecha(c.FECHA_ULTIMO||c.FECHA||"")}</div>
       <div class="small">${escapeHtml(c.ULTIMO_MENSAJE||"")}</div>
     </div>`;
   });
+
   setBox("chatList",html);
 }
 async function abrirChat(id){
@@ -885,7 +901,7 @@ async function cargarChatActual(){
     .order("created_at",{ascending:true});
 
   if(error){
-    console.error(error);
+    console.error("Error cargando mensajes del chat:", error);
     return;
   }
 
@@ -904,23 +920,35 @@ function normalizarImagenUrl(url){
 }
 
 function renderChatMensajes(){
-  const chat=chats.find(c=>String(c.ID_CHAT)===String(chatActualId))||{};
+  const chat=chats.find(c=>String(c.ID_CHAT||c.chat_id)===String(chatActualId))||{};
+
   setBox("chatTitulo",chat.USUARIO||"Chat landing");
   setBox("chatSubtitulo",`${chat.NOMBRE_COMPLETO||""} ${chat.TELEFONO? "· "+chat.TELEFONO:""}`);
   setBox("chatEstado",chat.SOLICITUD_ID?`Solicitud: ${chat.SOLICITUD_ID}`:"Sin solicitud");
-  if(!chatMensajes.length){setBox("chatBody",`<div class="alert-box">Sin mensajes todavía.</div>`);return}
+
+  if(!chatMensajes.length){
+    setBox("chatBody",`<div class="alert-box">Sin mensajes todavía.</div>`);
+    return;
+  }
+
   let html="";
+
   chatMensajes.forEach(m=>{
-    const tipo=normalizar(m.TIPO_EMISOR);
+    const tipo=normalizar(m.tipo_emisor || m.TIPO_EMISOR);
     const esUser=tipo==="USUARIO";
+    const mensaje = m.mensaje || m.MENSAJE || "";
+    const imagen = m.imagen_url || m.IMAGEN_URL || "";
+    const fecha = m.created_at || m.FECHA || "";
+
     html+=`<div class="chat-msg ${esUser?"user":"op"}">
       <div class="chat-bubble">
-        ${escapeHtml(m.MENSAJE||"")}
-        ${m.IMAGEN_URL?`<img src="${normalizarImagenUrl(m.IMAGEN_URL)}" alt="Imagen">`:""}
+        ${escapeHtml(mensaje)}
+        ${imagen?`<img src="${normalizarImagenUrl(imagen)}" alt="Imagen">`:""}
       </div>
-      <div class="chat-meta">${esUser?"Usuario":"Operador"} · ${formatFecha(m.FECHA)}</div>
+      <div class="chat-meta">${esUser?"Usuario":"Operador"} · ${formatFecha(fecha)}</div>
     </div>`;
   });
+
   const box=document.getElementById("chatBody");
   box.innerHTML=html;
   box.scrollTop=box.scrollHeight;
@@ -931,49 +959,35 @@ async function enviarChat(){
     return;
   }
 
-  const mensaje=val("chatInput").trim();
+  const input = document.getElementById("chatInput");
+  const mensaje = input.value.trim();
 
-  if(!mensaje && !chatImagenBase64)return;
+  if(!mensaje && !chatImagenBase64) return;
 
-  const payload={
-    action:"enviarmensajechatlanding",
-    idChat:chatActualId,
-    chatSessionId:chatActualId,
-    pc:pcOperativa,
-    operador:operador.nombre,
-    usuario:operador.usuario,
-    emisor:operador.nombre,
-    tipoEmisor:"OPERADOR",
-    mensaje
-  };
+  agregarMensajeLocalPanel(mensaje, chatImagenBase64 || "");
 
-  if(chatImagenBase64){
-    payload.imagenUrl=chatImagenBase64;
-    payload.imagenBase64=chatImagenBase64;
-    payload.imagenNombre=chatImagenNombre||"captura.png";
-  }
+  const { error } = await supabaseClient
+    .from("chat_mensajes")
+    .insert({
+      chat_id: chatActualId,
+      tipo_emisor: "OPERADOR",
+      emisor: operador.nombre || operador.usuario || "Operador",
+      mensaje: mensaje || "",
+      imagen_url: chatImagenBase64 || ""
+    });
 
-  if(chatImagenBase64){
-    await apiPostNoCors(payload);
-    document.getElementById("chatInput").value="";
-    quitarImagenChat();
-    setTimeout(()=>cargarChatActual(false),1500);
-    setTimeout(()=>cargarChatActual(false),3800);
+  if(error){
+    console.error("Error enviando mensaje operador:", error);
+    alert("No se pudo enviar el mensaje.");
     return;
   }
 
-  const r=await api(payload);
-
-  if(!r.ok){
-    alert(r.error||"Error");
-    return;
-  }
-
-  document.getElementById("chatInput").value="";
+  input.value="";
   quitarImagenChat();
+  marcarUltimoMensajePanelEnviado();
 
-  setTimeout(()=>cargarChatActual(false),500);
-  setTimeout(()=>cargarChatActual(false),2000);
+  setTimeout(()=>cargarChatActual(),400);
+  setTimeout(()=>cargarChats(true),700);
 }
 
 function agregarMensajeLocalPanel(mensaje, imagen){
