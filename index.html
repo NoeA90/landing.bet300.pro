@@ -988,12 +988,10 @@ function cerrarSesion(){localStorage.removeItem("nodo_operador_lite");localStora
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-const SUPABASE_URL = "REEMPLAZAR_URL";
-const SUPABASE_KEY = "REEMPLAZAR_KEY";
+const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
+const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
+
 );
 
 let chatSessionId = "";
