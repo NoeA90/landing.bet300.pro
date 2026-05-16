@@ -1086,7 +1086,15 @@ async function CrearSolicitudSupabase(monto){
     return {
       ok:false,
       error:error.message || "No se pudo crear la solicitud."
-   })
+   };
+  }  
+
+  solicitudActual = data.id;
+  return {
+    ok:true,
+    solicitud:data
+   };
+  }     
         
   
 </script>
