@@ -1037,6 +1037,16 @@ const supabaseClient = window.supabase.createClient(
 );
 
 console.log("Supabase conectado ✅");
+ async function testSupabase(){
+  const { data, error } = await supabase
+    .from("pcs")
+    .select("*");
+
+  console.log("TEST SUPABASE DATA:", data);
+  console.log("TEST SUPABASE ERROR:", error);
+}
+
+testSupabase(); 
 </script>
 </body>
 </html>
