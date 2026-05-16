@@ -241,8 +241,14 @@ table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px s
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwvZGRAOxBLNIQ52mlED6ZlsOkpAd2PicOvmlZFBTKptXR5lnC_n87w-awDvowmktI8/exec";
+
+const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
+const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let operador=null, pcOperativa=null;
 let solicitudes=[], billeteras=[], chats=[], chatMensajes=[];
@@ -270,40 +276,53 @@ function normalizar(v){return String(v||"").trim().toUpperCase()}
 function setBox(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html}
 function val(id){return document.getElementById(id)?.value||""}
 function toast(msg,type="blue"){const div=document.createElement("div");div.className="toast";div.style.background=type==="red"?"#f04438":type==="green"?"#12b76a":"#3d5afe";div.innerText=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3500)}
-function formatFecha(f){
-  if(!f) return "";
+function formatFecha(fechaRaw){
+  if(!fechaRaw) return "";
 
-  const txt = String(f).trim();
+  try{
+    const fecha = new Date(fechaRaw);
 
-  if(txt.includes("T")){
-    const partes = txt.split("T");
-    const fecha = partes[0].split("-");
-    const hora = partes[1].slice(0,5);
-
-    if(fecha.length === 3 && hora){
-      return `${fecha[2]}/${fecha[1]} · ${hora}`;
+    if(isNaN(fecha)){
+      return String(fechaRaw || "");
     }
+
+    return fecha.toLocaleString("es-AR",{
+      timeZone:"America/Argentina/Buenos_Aires",
+      day:"2-digit",
+      month:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    }).replace(",", " ·");
+
+  }catch(e){
+    return String(fechaRaw || "");
   }
-
-  if(txt.includes(" ")){
-    const partes = txt.split(" ");
-    const fecha = partes[0] || "";
-    const hora = (partes[1] || "").slice(0,5);
-
-    if(hora){
-      return `${fecha} · ${hora}`;
-    }
-  }
-
-  return txt;
 }
 
-function formatearHoraChat(f){
-  const v = formatFecha(f);
-  if(!v) return "";
-  const partes = String(v).split("·");
-  return partes.length > 1 ? partes[1].trim() : v;
+function formatearHoraChat(fechaRaw){
+  if(!fechaRaw) return "";
+
+  try{
+    const fecha = new Date(fechaRaw);
+
+    if(isNaN(fecha)){
+      return "";
+    }
+
+    return fecha.toLocaleTimeString("es-AR",{
+      timeZone:"America/Argentina/Buenos_Aires",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    });
+
+  }catch(e){
+    return "";
+  }
 }
+
+
 function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
 function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
 function estadoBadge(e){const x=normalizar(e);if(esRealizada({ESTADO:e}))return`<span class="badge badge-ok">${e}</span>`;if(["RECHAZADA","ERROR"].includes(x))return`<span class="badge badge-danger">${e}</span>`;return`<span class="badge badge-pending">${e||"-"}</span>`}
@@ -315,6 +334,68 @@ async function api(data){
   const res=await fetch(API_URL,{method:"POST",body:fd});
   const text=await res.text();
   try{return JSON.parse(text)}catch(e){console.error(text);return{ok:false,error:"Respuesta inválida de API"}}
+}
+
+
+
+function mapSolicitudSupabase(s){
+  return {
+    ID: s.id,
+    SOLICITUD_ID: s.id,
+    FECHA_CREACION: s.created_at,
+    FECHA: s.created_at,
+    TIPO_SOLICITUD: s.tipo,
+    TIPO: s.tipo,
+    USUARIO: s.usuario,
+    USUARIO_JUGADOR: s.usuario,
+    NOMBRE_COMPLETO: s.nombre_completo,
+    TELEFONO: s.telefono,
+    PC: s.pc_codigo,
+    MONTO_DECLARADO: s.monto,
+    MONTO_REAL: s.monto,
+    ESTADO: s.estado,
+    BILLETERA_NOMBRE: s.billetera_nombre || "",
+    ID_BILLETERA: s.billetera_id || "",
+    CHAT_ID: s.chat_id || "",
+    OPERADOR: s.operador_usuario || ""
+  };
+}
+
+async function cargarSolicitudesSupabase(){
+  const { data, error } = await supabaseClient
+    .from("solicitudes")
+    .select("*")
+    .eq("pc_codigo", pcOperativa)
+    .order("created_at", { ascending:false });
+
+  if(error){
+    console.error("Error solicitudes Supabase:", error);
+    return { ok:false, error:error.message || "Error cargando solicitudes" };
+  }
+
+  return {
+    ok:true,
+    solicitudes:(data || []).map(mapSolicitudSupabase)
+  };
+}
+
+async function actualizarSolicitudSupabase(id, cambios){
+  const { data, error } = await supabaseClient
+    .from("solicitudes")
+    .update(cambios)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if(error){
+    console.error("Error actualizando solicitud:", error);
+    return { ok:false, error:error.message || "No se pudo actualizar la solicitud" };
+  }
+
+  return {
+    ok:true,
+    solicitud:mapSolicitudSupabase(data)
+  };
 }
 
 
@@ -402,6 +483,7 @@ function finalizarLogin(guardar=true){
     <span class="badge badge-ok">PC: ${pcOperativa}</span>
   `);
   refrescarTodo(false);
+  iniciarRealtimeSolicitudes();
   if(!timersIniciados){
     timersIniciados=true;
     setInterval(()=>cargarSolicitudes(true),4500);
@@ -410,6 +492,36 @@ function finalizarLogin(guardar=true){
     setInterval(()=>{ if(chatActualId) cargarChatActual(true); },3500);
   }
 }
+
+
+let supabaseSolicitudesChannel = null;
+
+function iniciarRealtimeSolicitudes(){
+  if(supabaseSolicitudesChannel){
+    supabaseClient.removeChannel(supabaseSolicitudesChannel);
+  }
+
+  supabaseSolicitudesChannel = supabaseClient
+    .channel("solicitudes_" + pcOperativa)
+    .on(
+      "postgres_changes",
+      {
+        event:"*",
+        schema:"public",
+        table:"solicitudes",
+        filter:"pc_codigo=eq." + pcOperativa
+      },
+      payload => {
+        cargarSolicitudes(true);
+        if(payload.eventType === "INSERT"){
+          toast("🔔 Nueva solicitud");
+          sonido("solicitud");
+        }
+      }
+    )
+    .subscribe();
+}
+
 
 function mostrarVista(vista){
   ["Inicio","Solicitudes","Billeteras","Chat"].forEach(v=>{
@@ -433,9 +545,15 @@ async function refrescarTodo(showToast=true){
   if(showToast)toast("Panel actualizado","green");
 }
 async function cargarSolicitudes(silencioso=false){
-  const r=await api({action:"listarsolicitudesoperador",usuario:operador.usuario,operador:operador.nombre,pc:pcOperativa,pcOperativa});
-  if(!r.ok){toast(r.error||"Error solicitudes","red");return}
-  solicitudes=(r.solicitudes||r.data||[]).slice().sort((a,b)=>new Date(b.FECHA_CREACION||b.FECHA||0)-new Date(a.FECHA_CREACION||a.FECHA||0));
+  const r = await cargarSolicitudesSupabase();
+
+  if(!r.ok){
+    toast(r.error || "Error solicitudes Supabase","red");
+    return;
+  }
+
+  solicitudes = (r.solicitudes || []);
+
   renderSolicitudes();
   renderInicio();
   verificarSolicitudes(silencioso);
@@ -531,40 +649,100 @@ function renderBilleteras(){
 }
 
 async function tomarSolicitud(id){
-  const r=await api({action:"tomarsolicitud",usuario:operador.usuario,operador:operador.nombre,solicitudId:id});
-  if(!r.ok){alert(r.error||"Error");return}
+  const r = await actualizarSolicitudSupabase(id, {
+    operador_usuario: operador.usuario || operador.nombre || "",
+    estado: "PENDIENTE"
+  });
+
+  if(!r.ok){
+    alert(r.error || "Error");
+    return;
+  }
+
   toast("Solicitud tomada","green");
   await refrescarTodo(false);
 }
 function abrirAprobarSolicitud(id){
-  const s=solicitudes.find(x=>String(x.ID||x.SOLICITUD_ID)===String(id));if(!s)return;
+  const s = solicitudes.find(x=>String(x.ID||x.SOLICITUD_ID)===String(id));
+
+  if(!s) return;
+
   abrirModal("Aprobar carga",`
     <div class="ok-box"><b>${s.USUARIO||""}</b> · ${money(s.MONTO_DECLARADO||s.MONTO_REAL||0)}</div>
-    <label>Monto real</label><input id="apMonto" type="number" value="${s.MONTO_REAL||s.MONTO_DECLARADO||""}">
-    <label>Observaciones</label><textarea id="apObs"></textarea>
+    <label>Monto real</label>
+    <input id="apMonto" type="number" value="${s.MONTO_REAL||s.MONTO_DECLARADO||""}">
+    <label>Observaciones</label>
+    <textarea id="apObs"></textarea>
+    <div class="alert-box">Este paso deja la solicitud como APROBADA_MANUAL en Supabase. Después conectamos la cola de Playwright.</div>
   `,async()=>{
-    const r=await api({action:"aprobarsolicitud",usuario:operador.usuario,operador:operador.nombre,solicitudId:id,montoReal:val("apMonto"),observaciones:val("apObs")});
-    if(!r.ok){alert(r.error||"Error");return}
-    cerrarModal();toast("Carga aprobada","green");await refrescarTodo(false);
+
+    const r = await actualizarSolicitudSupabase(id, {
+      estado:"APROBADA_MANUAL",
+      monto:Number(val("apMonto") || s.MONTO_DECLARADO || 0),
+      operador_usuario:operador.usuario || operador.nombre || ""
+    });
+
+    if(!r.ok){
+      alert(r.error || "Error");
+      return;
+    }
+
+    cerrarModal();
+    toast("Carga aprobada","green");
+    await refrescarTodo(false);
+
   },"Aprobar");
 }
 function abrirCerrarRetiro(id){
-  const s=solicitudes.find(x=>String(x.ID||x.SOLICITUD_ID)===String(id));if(!s)return;
+  const s = solicitudes.find(x=>String(x.ID||x.SOLICITUD_ID)===String(id));
+
+  if(!s) return;
+
   abrirModal("Cerrar retiro",`
     <div class="ok-box"><b>${s.USUARIO||""}</b> · ${money(s.MONTO_DECLARADO||s.MONTO_REAL||0)}</div>
-    <label>Monto final</label><input id="retMonto" type="number" value="${s.MONTO_REAL||s.MONTO_DECLARADO||""}">
-    <label>Observaciones</label><textarea id="retObs"></textarea>
+    <label>Monto final</label>
+    <input id="retMonto" type="number" value="${s.MONTO_REAL||s.MONTO_DECLARADO||""}">
+    <label>Observaciones</label>
+    <textarea id="retObs"></textarea>
   `,async()=>{
-    const r=await api({action:"cerrarretiro",usuario:operador.usuario,operador:operador.nombre,solicitudId:id,montoReal:val("retMonto"),observaciones:val("retObs")});
-    if(!r.ok){alert(r.error||"Error");return}
-    cerrarModal();toast("Retiro cerrado","green");await refrescarTodo(false);
+
+    const r = await actualizarSolicitudSupabase(id, {
+      estado:"PAGADA",
+      monto:Number(val("retMonto") || s.MONTO_DECLARADO || 0),
+      operador_usuario:operador.usuario || operador.nombre || ""
+    });
+
+    if(!r.ok){
+      alert(r.error || "Error");
+      return;
+    }
+
+    cerrarModal();
+    toast("Retiro cerrado","green");
+    await refrescarTodo(false);
+
   },"Cerrar retiro");
 }
 function abrirRechazarSolicitud(id){
-  abrirModal("Rechazar solicitud",`<label>Motivo</label><textarea id="rechObs"></textarea>`,async()=>{
-    const r=await api({action:"rechazarsolicitud",usuario:operador.usuario,operador:operador.nombre,solicitudId:id,observaciones:val("rechObs")});
-    if(!r.ok){alert(r.error||"Error");return}
-    cerrarModal();toast("Solicitud rechazada","red");await refrescarTodo(false);
+  abrirModal("Rechazar solicitud",`
+    <label>Motivo</label>
+    <textarea id="rechObs"></textarea>
+  `,async()=>{
+
+    const r = await actualizarSolicitudSupabase(id, {
+      estado:"RECHAZADA",
+      operador_usuario:operador.usuario || operador.nombre || ""
+    });
+
+    if(!r.ok){
+      alert(r.error || "Error");
+      return;
+    }
+
+    cerrarModal();
+    toast("Solicitud rechazada","red");
+    await refrescarTodo(false);
+
   },"Rechazar");
 }
 
@@ -809,3 +987,5 @@ function cerrarSesion(){localStorage.removeItem("nodo_operador_lite");localStora
 </script>
 </body>
 </html>
+panel_operativo_supabase_solicitudes_v1.html
+42 KB
