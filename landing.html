@@ -1025,6 +1025,18 @@ setTimeout(()=>{document.getElementById("chatLiteInput")?.addEventListener("keyd
 async function vincularChatLiteASolicitud(idSolicitud){if(!chatSessionId||!idSolicitud)return;await api({action:"vincularchatasolicitud",idChat:chatSessionId,chatSessionId:chatSessionId,solicitudId:idSolicitud})}
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+<script>
+const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
+const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
+
+const supabase = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
+
+console.log("Supabase conectado ✅");
+</script>
 </body>
 </html>
