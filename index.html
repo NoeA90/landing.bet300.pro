@@ -619,7 +619,14 @@ async function cargarChats(silencioso=false){
 
   const { data, error } = await supabaseClient
     .from("chat_sesiones")
-    .select("*")
+    .select(`
+      *,
+      chat_mensajes(
+        mensaje,
+        tipo_emisor,
+        created_at
+      )
+    `)
     .eq("pc_codigo", pcOperativa)
     .order("created_at",{ascending:false});
 
@@ -628,7 +635,31 @@ async function cargarChats(silencioso=false){
     return;
   }
 
-  chats = data || [];
+  chats = (data || []).map(c => {
+
+    const mensajes = c.chat_mensajes || [];
+
+    const ultimo = mensajes.length
+      ? mensajes[mensajes.length - 1]
+      : null;
+
+    const sinLeer = mensajes.filter(m =>
+      String(m.tipo_emisor || "").toUpperCase() === "USUARIO"
+    ).length;
+
+    return {
+      ID_CHAT: c.chat_id,
+      USUARIO: c.usuario || "Usuario",
+      NOMBRE_COMPLETO: c.usuario || "",
+      TELEFONO: c.telefono || "",
+      FECHA: c.created_at,
+      FECHA_ULTIMO: ultimo?.created_at || c.created_at,
+      ULTIMO_MENSAJE: ultimo?.mensaje || "",
+      SIN_LEER: sinLeer,
+      SOLICITUD_ID: c.solicitud_id || ""
+    };
+
+  });
 
   renderChatList();
 
