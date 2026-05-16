@@ -1,3 +1,168 @@
+Admi - Zhina
+zhina2412
+En línea
+
+Admi - Zhina — 23/04/2026 14:10
+num cliente de
+16030031
+Admi - Zhina — 23/04/2026 14:41
+016030232
+Admi - Zhina — 28/04/2026 22:28
+
+
+Admi - Zhina — 01/05/2026 12:40
+
+Admi - Zhina — 03/05/2026 20:33
+http://bet-300.vin/
+Admi - Zhina — 08/05/2026 1:49
+sep=,
+Fecha,Estado,Cantidad,Tipo,Alias,Balance
+2026-05-08 01:48:02,DONE,14000,Deposito de un jugador,mako4580,6906350.96
+2026-05-08 01:47:36,DONE,5000,Deposito de un jugador,facc4872,6920350.96
+2026-05-08 01:47:09,DONE,3000,Deposito de un jugador,mart6578,6925350.96
+2026-05-08 01:45:40,DONE,-60000,Deposito de un jugador,mar8221,6928350.96... (Tiempo restante: 270 KB)
+
+agent_operations (73).csv
+320 KB
+Admi - Zhina — 13/05/2026 18:25
+hola noe pasas 300 (100 seguridad. 150 abogado, 50 chunior)
+cettourmp
+stella cettour
+Admi - Zhina — 2:16
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BET300 - Landing</title>
+
+landing_bet300_supabase_solicitud_fix_v1.html
+34 KB
+Admi - Zhina — 2:26
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NODO · OPERATIVO LITE</title>
+
+message.txt
+40 KB
+Admi - Zhina — 2:34
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NODO · OPERATIVO LITE</title>
+
+panel_operativo_supabase_solicitudes_v1.html
+42 KB
+grant update on table solicitudes to anon;
+
+create policy "solicitudes_update"
+on solicitudes
+for update
+to anon
+using (true)
+with check (true);
+``` [❶](code://python)
+Admi - Zhina — 2:55
+grant select, insert, update on table chat_sesiones to anon;
+grant select, insert, update on table chat_mensajes to anon;
+
+create policy "chat_sesiones_select"
+on chat_sesiones
+for select
+to anon
+using (true);
+
+create policy "chat_sesiones_insert"
+on chat_sesiones
+for insert
+to anon
+with check (true);
+
+create policy "chat_sesiones_update"
+on chat_sesiones
+for update
+to anon
+using (true);
+
+create policy "chat_mensajes_select"
+on chat_mensajes
+for select
+to anon
+using (true);
+
+create policy "chat_mensajes_insert"
+on chat_mensajes
+for insert
+to anon
+with check (true);
+
+create policy "chat_mensajes_update"
+on chat_mensajes
+for update
+to anon
+using (true);
+<!-- PATCH CHAT SUPABASE LANDING -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "REEMPLAZAR_URL";
+const SUPABASE_KEY = "REEMPLAZAR_KEY";
+
+landing_chat_supabase_patch.html
+3 KB
+<!-- PATCH CHAT SUPABASE OPERATIVO -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "REEMPLAZAR_URL";
+const SUPABASE_KEY = "REEMPLAZAR_KEY";
+
+index_operativo_chat_supabase_patch.html
+3 KB
+Admi - Zhina — 3:09
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BET300 - Landing</title>
+
+message.txt
+36 KB
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BET300 - Landing</title>
+
+message.txt
+36 KB
+Admi - Zhina — 3:26
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NODO · OPERATIVO LITE</title>
+
+index_operativo_supabase_ok_v2-1.html
+42 KB
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NODO · OPERATIVO LITE</title>
+
+index_operativo_supabase_ok_v2.html
+42 KB
+﻿
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -984,107 +1149,6 @@ function cerrarModal(){document.getElementById("modalOverlay").classList.add("hi
 function abrirMenuMobile(){const menu=document.getElementById("mobileMenu");menu.classList.add("open");menu.innerHTML="";const clone=document.getElementById("sidebar").cloneNode(true);clone.style.display="block";menu.appendChild(clone)}
 function cerrarMenuMobile(e){if(!e||e.target.id==="mobileMenu"){const menu=document.getElementById("mobileMenu");menu.classList.remove("open");menu.innerHTML=""}}
 function cerrarSesion(){localStorage.removeItem("nodo_operador_lite");localStorage.removeItem("nodo_pc_operativa_lite");location.reload()}
-<!-- PATCH CHAT SUPABASE LANDING -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
-
-
-);
-
-let chatSessionId = "";
-let realtimeChatChannel = null;
-
-async function crearChatSesionSupabase(){
-
-  if(chatSessionId) return chatSessionId;
-
-  const payload = {
-    chat_id: crypto.randomUUID(),
-    usuario: userData.usuario || "",
-    telefono: userData.telefono || "",
-    pc_codigo: PC
-  };
-
-  const { data, error } = await supabaseClient
-    .from("chat_sesiones")
-    .insert(payload)
-    .select()
-    .single();
-
-  if(error){
-    console.error(error);
-    return "";
-  }
-
-  chatSessionId = data.chat_id;
-
-  iniciarRealtimeChatLanding();
-
-  return chatSessionId;
-}
-
-async function enviarMensajeChatSupabase(mensaje="", imagenUrl=""){
-
-  await crearChatSesionSupabase();
-
-  const { error } = await supabaseClient
-    .from("chat_mensajes")
-    .insert({
-      chat_id: chatSessionId,
-      tipo_emisor: "USUARIO",
-      emisor: userData.usuario || "Usuario",
-      mensaje: mensaje || "",
-      imagen_url: imagenUrl || ""
-    });
-
-  if(error){
-    console.error(error);
-    return false;
-  }
-
-  return true;
-}
-
-function iniciarRealtimeChatLanding(){
-
-  if(realtimeChatChannel){
-    supabaseClient.removeChannel(realtimeChatChannel);
-  }
-
-  realtimeChatChannel = supabaseClient
-    .channel("chat_landing_" + chatSessionId)
-    .on(
-      "postgres_changes",
-      {
-        event:"INSERT",
-        schema:"public",
-        table:"chat_mensajes",
-        filter:"chat_id=eq." + chatSessionId
-      },
-      payload => {
-
-        const m = payload.new;
-
-        if(m.tipo_emisor === "OPERADOR"){
-          agregarMensajeChat(
-            "OPERADOR",
-            m.mensaje || "",
-            m.imagen_url || "",
-            m.created_at || ""
-          );
-        }
-
-      }
-    )
-    .subscribe();
-}
-</script>
-
 </script>
 </body>
 </html>
-panel_operativo_supabase_solicitudes_v1.html
-42 KB
