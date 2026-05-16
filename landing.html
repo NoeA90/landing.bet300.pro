@@ -1047,6 +1047,25 @@ console.log("Supabase conectado ✅");
 }
 
 testSupabase(); 
+
+ async function testCrearSolicitudSupabase (){
+   const {data, error} = await supabaseClient
+    .from("solicitudes")
+    .insert({
+      usuario: "test123",
+      nombre_completo: "Usuario Test",
+      telefono: 1100000000",
+      pc_codigo: "P3",
+      tipo: "CARGA",
+      monto: 1000,
+      estado: "PENDIENTE"
+    })
+    .select();
+   
+console.log("TEST CREAR SOLICITUD DATA:", data);
+console.log("TEST CREAR SOLICITUD ERROR:", error);  
+}
+  //testCrearSolicitudSupabase();
 </script>
 </body>
 </html>
