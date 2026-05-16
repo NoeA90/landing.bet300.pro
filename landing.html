@@ -872,12 +872,26 @@ const LS_CHAT="bet300_chat_"+PC;let chatSessionId=localStorage.getItem(LS_CHAT)|
 async function asegurarChatLite(){
 
   if(chatSessionId){
-    iniciarRealtimeChatLanding();
-    return chatSessionId;
+
+    const { data: existente } = await supabaseClient
+      .from("chat_sesiones")
+      .select("chat_id")
+      .eq("chat_id", chatSessionId)
+      .maybeSingle();
+
+    if(existente){
+      iniciarRealtimeChatLanding();
+      return chatSessionId;
+    }
+
+    localStorage.removeItem(LS_CHAT);
+    chatSessionId = "";
   }
 
+  const nuevoChatId = crypto.randomUUID();
+
   const payload = {
-    chat_id: crypto.randomUUID(),
+    chat_id: nuevoChatId,
     usuario: userData?.usuario || "",
     telefono: userData?.telefono || "",
     pc_codigo: PC,
@@ -897,6 +911,7 @@ async function asegurarChatLite(){
   }
 
   chatSessionId = data.chat_id;
+
   localStorage.setItem(LS_CHAT, chatSessionId);
 
   iniciarRealtimeChatLanding();
@@ -969,7 +984,7 @@ function formatFecha(fechaRaw){
     }).replace(",", " ·");
 
   }catch(e){
-    return String(fechaRaw || "");
+    return "";
   }
 }
 
