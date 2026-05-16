@@ -1076,7 +1076,7 @@ async function CrearSolicitudSupabase(monto){
       pc_codigo: PC,
       tipo: "CARGA",
       monto: Number(monto),
-      estado: "PENDIENTE"
+      estado: "PENDIENTE",
       chat_id: chatSessionId || null
    })
     .select()
