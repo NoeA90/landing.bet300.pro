@@ -472,8 +472,16 @@ button:disabled{
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbwvZGRAOxBLNIQ52mlED6ZlsOkpAd2PicOvmlZFBTKptXR5lnC_n87w-awDvowmktI8/exec";
+
+const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
+const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+console.log("Supabase conectado ✅");
 
 const WHATSAPP_POR_PC = {
   P1: "5492235181171",
@@ -864,14 +872,17 @@ const LS_CHAT="bet300_chat_"+PC;let chatSessionId=localStorage.getItem(LS_CHAT)|
 async function asegurarChatLite(){
 
   if(chatSessionId){
+    iniciarRealtimeChatLanding();
     return chatSessionId;
   }
 
   const payload = {
     chat_id: crypto.randomUUID(),
-    usuario: userData?.usuario  ||"",
-    telefono: userData?.telefono  ||"",
-    pc_codigo: PC
+    usuario: userData?.usuario || "",
+    telefono: userData?.telefono || "",
+    pc_codigo: PC,
+    estado: "ABIERTO",
+    solicitud_id: solicitudActual || null
   };
 
   const { data, error } = await supabaseClient
@@ -881,12 +892,11 @@ async function asegurarChatLite(){
     .single();
 
   if(error){
-    console.error(error);
+    console.error("Error creando chat_sesiones:", error);
     throw new Error("No se pudo iniciar el chat.");
   }
 
   chatSessionId = data.chat_id;
-
   localStorage.setItem(LS_CHAT, chatSessionId);
 
   iniciarRealtimeChatLanding();
@@ -907,23 +917,20 @@ async function cargarChatLite(){
     .order("created_at",{ascending:true});
 
   if(error){
-    console.error(error);
+    console.error("Error cargando chat_mensajes:", error);
     return;
   }
 
-  const mensajes = data || [];
+  const mensajes = (data || []).map(m=>({
+    TIPO_EMISOR:m.tipo_emisor,
+    MENSAJE:m.mensaje,
+    IMAGEN_URL:m.imagen_url,
+    FECHA:m.created_at,
+    LEIDO:"SI"
+  }));
 
   chatLiteMensajesCount = mensajes.length;
-
-  renderChatLite(
-    mensajes.map(m=>({
-      TIPO_EMISOR:m.tipo_emisor,
-      MENSAJE:m.mensaje,
-      IMAGEN_URL:m.imagen_url,
-      FECHA:m.created_at,
-      LEIDO:"SI"
-    }))
-  );
+  renderChatLite(mensajes);
 }
 
 
@@ -942,39 +949,50 @@ function normalizarImagenUrl(url){
 
 function renderChatLite(mensajes){const box=document.getElementById("chatLiteBody");let html=`<div class="chat-day">Chat de soporte</div>`;if(!mensajes.length){html+=`<div class="chat-msg operator"><div class="chat-bubble">Hola 👋 Escribinos tu consulta o adjuntá el comprobante si necesitás ayuda con la carga.</div><div class="chat-meta">Soporte</div></div>`}mensajes.forEach(m=>{const tipo=String(m.TIPO_EMISOR||"").toUpperCase();const esUsuario=tipo==="USUARIO";const cls=esUsuario?"user":"operator";const hora=formatearHoraChat(m.FECHA);const leido=String(m.LEIDO||"").toUpperCase()==="SI";html+=`<div class="chat-msg ${cls}"><div class="chat-bubble">${escapeHtml(m.MENSAJE||"")}${m.IMAGEN_URL?`<img src="${normalizarImagenUrl(m.IMAGEN_URL)}" alt="Imagen adjunta">`:""}</div><div class="chat-meta">${esUsuario?estadoMensajeChat(leido):"Soporte"} · ${hora}</div></div>`});box.innerHTML=html;box.scrollTop=box.scrollHeight}
 function estadoMensajeChat(leido){return leido?"✓✓ recibido":"✓ enviado"}
-function formatFecha(f){
-  if(!f) return "";
+function formatFecha(fechaRaw){
+  if(!fechaRaw) return "";
 
-  const txt = String(f).trim();
+  try{
+    const fecha = new Date(fechaRaw);
 
-  if(txt.includes("T")){
-    const partes = txt.split("T");
-    const fecha = partes[0].split("-");
-    const hora = partes[1].slice(0,5);
-
-    if(fecha.length === 3 && hora){
-      return `${fecha[2]}/${fecha[1]} · ${hora}`;
+    if(isNaN(fecha)){
+      return String(fechaRaw || "");
     }
+
+    return fecha.toLocaleString("es-AR",{
+      timeZone:"America/Argentina/Buenos_Aires",
+      day:"2-digit",
+      month:"2-digit",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    }).replace(",", " ·");
+
+  }catch(e){
+    return String(fechaRaw || "");
   }
-
-  if(txt.includes(" ")){
-    const partes = txt.split(" ");
-    const fecha = partes[0] || "";
-    const hora = (partes[1] || "").slice(0,5);
-
-    if(hora){
-      return `${fecha} · ${hora}`;
-    }
-  }
-
-  return txt;
 }
 
-function formatearHoraChat(f){
-  const v = formatFecha(f);
-  if(!v) return "";
-  const partes = String(v).split("·");
-  return partes.length > 1 ? partes[1].trim() : v;
+function formatearHoraChat(fechaRaw){
+  if(!fechaRaw) return "";
+
+  try{
+    const fecha = new Date(fechaRaw);
+
+    if(isNaN(fecha)){
+      return "";
+    }
+
+    return fecha.toLocaleTimeString("es-AR",{
+      timeZone:"America/Argentina/Buenos_Aires",
+      hour:"2-digit",
+      minute:"2-digit",
+      hour12:false
+    });
+
+  }catch(e){
+    return "";
+  }
 }
 function escapeHtml(text){return String(text||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
 async function enviarChatLite(){
@@ -1007,47 +1025,83 @@ async function enviarChatLite(){
   box.scrollTop = box.scrollHeight;
   input.value = "";
 
-  const payload = {
-    action: "enviarmensajechatlanding",
-    idChat: chatSessionId,
-    chatSessionId: chatSessionId,
-    pc: PC,
-    usuarioJugador: userData.usuario,
-    nombreCompleto: userData.nombre,
-    telefono: userData.telefono,
-    solicitudId: solicitudActual || "",
-    mensaje: mensaje
-  };
+  const ok = await enviarMensajeChatSupabase(
+    mensaje,
+    chatLiteImagenBase64 || ""
+  );
 
-  if(chatLiteImagenBase64){
-    payload.imagenBase64 = chatLiteImagenBase64;
-    payload.imagenNombre = chatLiteImagenNombre || "comprobante.jpg";
-
-    await apiPostNoCors(payload);
-
-    marcarUltimoMensajeChatLiteEnviado();
-    quitarImagenChatLite();
-
-    setTimeout(cargarChatLite, 1800);
-    setTimeout(cargarChatLite, 4200);
-
-    return;
-  }
-
-  const r = await api(payload);
-
-  if(!r.ok){
-    alert(r.error || "No se pudo enviar el mensaje.");
+  if(!ok){
+    alert("No se pudo enviar el mensaje.");
     return;
   }
 
   marcarUltimoMensajeChatLiteEnviado();
   quitarImagenChatLite();
 
-  marcarUltimoMensajeChatLiteEnviado();
-  setTimeout(cargarChatLite, 700);
-  setTimeout(cargarChatLite, 2200);
+  setTimeout(cargarChatLite, 500);
+  setTimeout(cargarChatLite, 1500);
 }
+
+async function enviarMensajeChatSupabase(mensaje="", imagenUrl=""){
+
+  try{
+    await asegurarChatLite();
+
+    const { error } = await supabaseClient
+      .from("chat_mensajes")
+      .insert({
+        chat_id: chatSessionId,
+        tipo_emisor: "USUARIO",
+        emisor: userData?.usuario || "Usuario",
+        mensaje: mensaje || "",
+        imagen_url: imagenUrl || ""
+      });
+
+    if(error){
+      console.error("Error insertando chat_mensajes:", error);
+      return false;
+    }
+
+    return true;
+
+  }catch(e){
+    console.error("Error enviarMensajeChatSupabase:", e);
+    return false;
+  }
+}
+
+let realtimeChatChannel = null;
+
+function iniciarRealtimeChatLanding(){
+
+  if(!chatSessionId || !supabaseClient) return;
+
+  if(realtimeChatChannel){
+    supabaseClient.removeChannel(realtimeChatChannel);
+  }
+
+  realtimeChatChannel = supabaseClient
+    .channel("chat_landing_" + chatSessionId)
+    .on(
+      "postgres_changes",
+      {
+        event:"INSERT",
+        schema:"public",
+        table:"chat_mensajes",
+        filter:"chat_id=eq." + chatSessionId
+      },
+      payload => {
+        const m = payload.new;
+
+        if(String(m.tipo_emisor || "").toUpperCase() === "OPERADOR"){
+          cargarChatLite();
+        }
+      }
+    )
+    .subscribe();
+}
+
+
 function marcarUltimoMensajeChatLiteEnviado(){
   const metas = document.querySelectorAll("#chatLiteBody .chat-msg.user .chat-meta");
   const last = metas[metas.length - 1];
@@ -1058,81 +1112,26 @@ function leerImagenChatLite(file){if(!file.type.startsWith("image/")){alert("Adj
 function quitarImagenChatLite(){chatLiteImagenBase64="";chatLiteImagenNombre="";document.getElementById("chatLiteFile").value="";document.getElementById("chatLitePreviewImg").src="";document.getElementById("chatLitePreview").classList.remove("show")}
 document.addEventListener("paste",e=>{const chatVisible=!document.getElementById("chatLite").classList.contains("hidden");if(!chatVisible)return;const items=e.clipboardData?.items||[];for(const item of items){if(item.type&&item.type.startsWith("image/")){const file=item.getAsFile();if(file){leerImagenChatLite(file);e.preventDefault();return}}}});
 setTimeout(()=>{document.getElementById("chatLiteInput")?.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();enviarChatLite()}})},0);
-async function vincularChatLiteASolicitud(idSolicitud){if(!chatSessionId||!idSolicitud)return;await api({action:"vincularchatasolicitud",idChat:chatSessionId,chatSessionId:chatSessionId,solicitudId:idSolicitud})}
+async function vincularChatLiteASolicitud(idSolicitud){
+  if(!idSolicitud) return;
 
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  try{
+    if(!chatSessionId && userData?.usuario){
+      await asegurarChatLite();
+    }
 
-<script>
-const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
-const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
+    if(!chatSessionId) return;
 
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+    await supabaseClient
+      .from("chat_sesiones")
+      .update({ solicitud_id: Number(idSolicitud) })
+      .eq("chat_id", chatSessionId);
 
-console.log("Supabase conectado ✅");
- async function testSupabase(){
-  const { data, error } = await supabaseClient
-    .from("pcs")
-    .select("*");
-
-  console.log("TEST SUPABASE DATA:", data);
-  console.log("TEST SUPABASE ERROR:", error);
+  }catch(e){
+    console.warn("No se pudo vincular chat a solicitud:", e);
+  }
 }
 
-// testSupabase(); 
-
- async function testCrearSolicitudSupabase (){
-   const {data, error} = await supabaseClient
-    .from("solicitudes")
-    .insert({
-      usuario: "test123",
-      nombre_completo: "Usuario Test",
-      telefono: "1100000000",
-      pc_codigo: "P3",
-      tipo: "CARGA",
-      monto: "1000",
-      estado: "PENDIENTE"
-    })
-    .select();
-   
-console.log("TEST CREAR SOLICITUD DATA:", data);
-console.log("TEST CREAR SOLICITUD ERROR:", error);  
-}
-// testCrearSolicitudSupabase();
-async function crearSolicitudSupabase(monto){
-   const {data, error} = await supabaseClient
-    .from("solicitudes")
-    .insert({
-      usuario: userData.usuario,
-      nombre_completo: userData.nombre,
-      telefono: userData.telefono,
-      pc_codigo: PC,
-      tipo: "CARGA",
-      monto: Number(monto),
-      estado: "PENDIENTE",
-      chat_id: chatSessionId || null
-   })
-    .select()
-    .single();
-  if (error) {
-    console.error("Error creando solicitud Supabase:", error);
-    return {
-      ok:false,
-      error:error.message || "No se pudo crear la solicitud."
-   };
-  }  
-
-  solicitudActual = data.id;
-  return {
-    ok:true,
-    solicitud:data
-   };
-  }     
-        
-  
 </script>
 </body>
 </html>
