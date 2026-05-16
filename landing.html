@@ -1031,7 +1031,7 @@ async function vincularChatLiteASolicitud(idSolicitud){if(!chatSessionId||!idSol
 const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
 const SUPABASE_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
