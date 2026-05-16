@@ -422,7 +422,7 @@ button:disabled{
 
       <div class="line"><b>Titular:</b> <span id="titularBox">Cargando...</span></div>
       <div class="line"><b>Banco:</b> <span id="bancoBox">Mercado Pago</span></div>
-      <div class="warn">⚠️ Monto mínimo: $2.000</div>
+      <div class="warn" id="montoMinimoTxt">⚠️ Carga mínima: $2.000</div>
     </div>
 
     <div id="datosUsuarioBox" class="ok">
@@ -449,7 +449,7 @@ button:disabled{
         <div class="step-dot">✓</div>
         <div>
           <div class="step-title">Solicitud enviada</div>
-          <div class="step-text">Recibimos tu pedido de carga.</div>
+          <div class="step-text" id="step1Text">Recibimos tu solicitud.</div>
         </div>
       </div>
 
@@ -457,20 +457,20 @@ button:disabled{
         <div class="step-dot">2</div>
         <div>
           <div class="step-title"><span class="loader"></span>Esperando verificación</div>
-          <div class="step-text">Un operador está revisando la transferencia.</div>
+          <div class="step-text" id="step2Text">Un operador está revisando tu solicitud.</div>
         </div>
       </div>
 
       <div id="step3" class="step">
         <div class="step-dot">3</div>
         <div>
-          <div class="step-title">Fichas acreditadas</div>
-          <div class="step-text">Cuando se apruebe, te avisamos automáticamente.</div>
+          <div class="step-title" id="step3Title">Fichas acreditadas</div>
+          <div class="step-text" id="step3Text">Cuando se apruebe, te avisamos automáticamente.</div>
         </div>
       </div>
 
       <div class="mini">
-        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por WhatsApp.
+        No cierres esta ventana. Si demora más de lo habitual, podés contactarnos por chat.
       </div>
     </div>
 
@@ -761,21 +761,51 @@ function copiarCvu() {
 
 function seleccionarTipoSolicitud(tipo){
   tipoSolicitudActual = String(tipo || "CARGA").toUpperCase();
-
   const esRetiro = tipoSolicitudActual === "RETIRO";
 
   document.getElementById("tipoCargaBtn").classList.toggle("active", !esRetiro);
   document.getElementById("tipoRetiroBtn").classList.toggle("active", esRetiro);
 
-  document.getElementById("montoLabel").innerText = esRetiro
-    ? "Monto a retirar *"
-    : "Monto a cargar *";
+  document.getElementById("montoLabel").innerText = esRetiro ? "Monto a retirar *" : "Monto a cargar *";
+  document.getElementById("monto").placeholder = esRetiro ? "mínimo: 5000" : "ej: 5000";
+  document.getElementById("btnEnviar").innerText = esRetiro ? "Enviar solicitud de retiro" : "Enviar solicitud";
 
-  document.getElementById("btnEnviar").innerText = esRetiro
-    ? "Enviar solicitud de retiro"
-    : "Enviar solicitud";
+  const minTxt = document.getElementById("montoMinimoTxt");
+  if(minTxt){
+    minTxt.innerText = esRetiro ? "⚠️ Retiro mínimo: $5.000" : "⚠️ Carga mínima: $2.000";
+  }
 }
 
+
+
+async function puedeSolicitarRetiro(){
+  const desde = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabaseClient
+    .from("solicitudes")
+    .select("id, created_at, estado")
+    .eq("usuario", userData.usuario)
+    .eq("tipo", "RETIRO")
+    .gte("created_at", desde)
+    .order("created_at", { ascending:false })
+    .limit(1);
+
+  if(error){
+    console.error("Error validando retiro 24hs:", error);
+    return { ok:false, error:"No pudimos validar el último retiro. Contactanos por chat." };
+  }
+
+  if(data && data.length){
+    const ultima = new Date(data[0].created_at);
+    const proxima = new Date(ultima.getTime() + 24 * 60 * 60 * 1000);
+    return {
+      ok:false,
+      error:`Ya tenés una solicitud de retiro dentro de las últimas 24 hs. Podés volver a solicitar desde ${proxima.toLocaleString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false})}. Si necesitás ayuda, escribinos por chat.`
+    };
+  }
+
+  return { ok:true };
+}
 
 async function crearSolicitud() {
   const monto = Number(document.getElementById("monto").value || 0);
@@ -793,8 +823,21 @@ async function crearSolicitud() {
   }
 
   if (!esRetiro && monto < 2000) {
-    mostrarResultado("El monto mínimo es $2.000.", false);
+    mostrarResultado("El monto mínimo de carga es $2.000.", false);
     return;
+  }
+
+  if (esRetiro && monto < 5000) {
+    mostrarResultado("El monto mínimo de retiro es $5.000.", false);
+    return;
+  }
+
+  if (esRetiro) {
+    const validacionRetiro = await puedeSolicitarRetiro();
+    if(!validacionRetiro.ok){
+      mostrarResultado(validacionRetiro.error || "No se puede solicitar otro retiro todavía. Contactanos por chat.", false);
+      return;
+    }
   }
 
   if (!esRetiro && !billeteraActiva) {
@@ -846,11 +889,23 @@ function completarEstado() {
 
 function renderProgresoSolicitud(estado){
   const e = String(estado || "PENDIENTE").toUpperCase();
+  const tipo = String(tipoSolicitudActual || "CARGA").toUpperCase();
+  const esRetiro = tipo === "RETIRO";
 
   const esFinalOk = ["APROBADA","APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA"].includes(e);
   const esRechazada = ["RECHAZADA","ERROR"].includes(e);
 
   document.getElementById("estadoEspera").classList.remove("hidden");
+
+  const step1Text = document.getElementById("step1Text");
+  const step2Text = document.getElementById("step2Text");
+  const step3Title = document.getElementById("step3Title");
+  const step3Text = document.getElementById("step3Text");
+
+  if(step1Text) step1Text.innerText = esRetiro ? "Recibimos tu solicitud de retiro." : "Recibimos tu pedido de carga.";
+  if(step2Text) step2Text.innerText = esRetiro ? "Un operador está revisando tu retiro." : "Un operador está revisando la transferencia.";
+  if(step3Title) step3Title.innerText = esRetiro ? "Retiro aprobado/pagado" : "Fichas acreditadas";
+  if(step3Text) step3Text.innerText = esRetiro ? "Cuando se apruebe, te avisamos automáticamente." : "Cuando se apruebe, te avisamos automáticamente.";
 
   document.getElementById("step1").className = "step done";
 
@@ -892,6 +947,10 @@ function iniciarEscuchaEstado() {
     if(error || !data) return;
 
     const estado = String(data.estado || "");
+    const tipo = String(data.tipo || tipoSolicitudActual || "CARGA").toUpperCase();
+    const esRetiro = tipo === "RETIRO";
+
+    tipoSolicitudActual = tipo;
     renderProgresoSolicitud(estado);
 
     if (
@@ -903,31 +962,39 @@ function iniciarEscuchaEstado() {
     ) {
       clearInterval(intervaloEstado);
       completarEstado();
-      localStorage.removeItem(LS_SOLICITUD);
-
-      const esRetiro = String(data.tipo || "").toUpperCase() === "RETIRO";
 
       if(esRetiro){
         mostrarResultado("✅ Tu retiro fue marcado como pagado/aprobado.", true);
+        setTimeout(() => {
+          resetLandingEstado();
+          location.reload();
+        }, 2600);
       }else{
         document.getElementById("successModal").classList.remove("hidden");
+        setTimeout(() => {
+          resetLandingEstado();
+          location.reload();
+        }, 4500);
       }
 
-      if (navigator.vibrate) {
-        navigator.vibrate([160, 80, 160]);
-      }
+      if (navigator.vibrate) navigator.vibrate([160, 80, 160]);
+      return;
     }
 
     if (estado === "RECHAZADA" || estado === "ERROR") {
       clearInterval(intervaloEstado);
-      localStorage.removeItem(LS_SOLICITUD);
       mostrarResultado("La solicitud no pudo ser aprobada. Contactanos por chat.", false);
+      setTimeout(() => {
+        resetLandingEstado();
+        location.reload();
+      }, 3200);
     }
   }, 3500);
 }
 
 function irPlataforma() {
   const url = LINKS_PLATAFORMA[PC] || LINKS_PLATAFORMA.P1;
+  resetLandingEstado();
 
   if (url) {
     window.location.href = url;
@@ -936,8 +1003,8 @@ function irPlataforma() {
 
 function cerrarModalExito() {
   document.getElementById("successModal").classList.add("hidden");
-  solicitudActual = null;
-  localStorage.removeItem(LS_SOLICITUD);
+  resetLandingEstado();
+  setTimeout(() => location.reload(), 300);
 }
 
 function mostrarResultado(texto, ok) {
@@ -987,24 +1054,31 @@ async function crearSolicitudSupabase(monto, tipo="CARGA"){
 }
 
  function resetLandingEstado(){
-
   solicitudActual = null;
 
-  localStorage.removeItem("solicitud_activa");
-  localStorage.removeItem("solicitud_id");
-  localStorage.removeItem("solicitud_tipo");
-
-  const progreso = document.getElementById("estadoSolicitudBox");
-
-  if(progreso){
-    progreso.style.display = "none";
+  if(intervaloEstado){
+    clearInterval(intervaloEstado);
+    intervaloEstado = null;
   }
 
-  const modal = document.getElementById("modalConfirmacion");
+  localStorage.removeItem(LS_SOLICITUD);
 
-  if(modal){
-    modal.classList.remove("show");
+  const progreso = document.getElementById("estadoEspera");
+  if(progreso) progreso.classList.add("hidden");
+
+  const modal = document.getElementById("successModal");
+  if(modal) modal.classList.add("hidden");
+
+  const resultado = document.getElementById("resultado");
+  if(resultado){
+    resultado.innerHTML = "";
+    resultado.className = "result";
   }
+
+  const monto = document.getElementById("monto");
+  if(monto) monto.value = "";
+
+  seleccionarTipoSolicitud("CARGA");
 } 
 /* === CHAT LITE PRO === */
 const LS_CHAT="bet300_chat_"+PC;let chatSessionId=localStorage.getItem(LS_CHAT)||"";let chatLiteImagenBase64="";let chatLiteImagenNombre="";let chatLiteTimer=null;let chatLiteMensajesCount=0;
