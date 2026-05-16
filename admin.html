@@ -1,362 +1,1013 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NODO · ADMIN LITE</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
-:root{--bg:#0e1014;--panel:#151821;--card:#191d27;--card2:#1c2230;--line:#2c3140;--muted:#98a2b3;--blue:#3d5afe;--green:#12b76a;--red:#f04438;--yellow:#fdb022}
-body{background:var(--bg);color:#fff;overflow:hidden}.hidden{display:none!important}.layout{display:grid;grid-template-columns:280px 1fr;height:100vh}.sidebar{background:var(--panel);border-right:1px solid #272b36;padding:18px;overflow-y:auto}.main{overflow-y:auto;padding:18px}.logo{width:170px;display:block;margin:0 auto 18px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}.card-title{font-size:20px;font-weight:900;margin-bottom:14px}.small{font-size:12px;color:var(--muted)}
-.nav-btn{width:100%;background:#1d2230;color:#fff;border:none;padding:12px;border-radius:12px;margin-bottom:8px;cursor:pointer;text-align:left;font-weight:bold;transition:.15s;position:relative}.nav-btn:hover{background:#262d3d}.nav-btn.active{background:var(--blue)}
-.badge-alert{position:absolute;right:12px;top:10px;background:#ff3b30;color:#fff;border-radius:999px;min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}
-.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:bold;margin:2px}.badge-pending{background:#5a3d09;color:#ffd98f}.badge-ok{background:#11371f;color:#b9f7cb}.badge-danger{background:#3a1515;color:#ffd0d0}.badge-blue{background:#16235f;color:#cbd5ff}.badge-muted{background:#2a2f3b;color:#d0d5dd}
-.top-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}.stat-card{background:#1b202c;border:1px solid #2e3444;border-radius:18px;padding:16px}.stat-title{font-size:13px;color:var(--muted);margin-bottom:10px}.stat-value{font-size:28px;font-weight:900}.stat-sub{font-size:12px;color:var(--muted);margin-top:6px}
-.wallet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.wallet-card{background:var(--card2);border:1px solid #30384a;border-radius:18px;padding:14px;position:relative;overflow:hidden}.wallet-card.ok{border-color:rgba(18,183,106,.45)}.wallet-card.paused{opacity:.72;border-color:rgba(240,68,56,.5)}.wallet-card.selected{border-color:rgba(61,90,254,.8);box-shadow:0 0 0 1px rgba(61,90,254,.45)}.wallet-name{font-weight:bold;font-size:16px}.wallet-type{color:var(--muted);margin-top:4px;font-size:13px}.wallet-balance{margin-top:14px;font-size:23px;font-weight:900}.wallet-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
-input,select,textarea,button{font-size:14px}input,select,textarea{width:100%;border:none;border-radius:10px;padding:11px;margin-top:6px;margin-bottom:12px;background:#fff;color:#111}textarea{resize:vertical;min-height:80px}
-.btn{width:100%;border:none;border-radius:12px;padding:12px;cursor:pointer;font-weight:bold}.btn-primary{background:var(--blue);color:#fff}.btn-green{background:var(--green);color:#fff}.btn-red{background:var(--red);color:#fff}.btn-gray{background:#667085;color:#fff}.btn-yellow{background:var(--yellow);color:#111}.mini-btn{border:none;border-radius:10px;padding:8px 10px;cursor:pointer;font-size:12px;font-weight:bold}.green{background:var(--green);color:#fff}.red{background:var(--red);color:#fff}.blue{background:var(--blue);color:#fff}.yellow{background:var(--yellow);color:#111}
-table{width:100%;border-collapse:collapse}th,td{padding:11px;border-bottom:1px solid #2d3342;text-align:left;font-size:13px;vertical-align:top}th{background:#202635;position:sticky;top:0;z-index:1}tr:hover{background:#1c2230}.table-wrap{max-height:560px;overflow:auto;border-radius:14px;border:1px solid #2d3342}.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px}
-.alert-box{background:#38280d;color:#ffd98f;padding:14px;border-radius:14px;margin-bottom:14px}.err-box{background:#3a1515;color:#ffd0d0;padding:14px;border-radius:14px;margin-bottom:14px}.ok-box{background:#123322;color:#b9f7cb;padding:14px;border-radius:14px;margin-bottom:14px}.login-wrap{display:flex;align-items:center;justify-content:center;height:100vh;padding:20px}.login-card{width:100%;max-width:420px;background:var(--card);border:1px solid #2d3342;border-radius:20px;padding:22px}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px}.modal{width:100%;max-width:620px;max-height:92vh;overflow:auto;background:var(--card);border:1px solid #2e3444;border-radius:22px;padding:20px}.modal-title{font-size:22px;font-weight:900;margin-bottom:18px}.modal-actions{display:flex;gap:10px;margin-top:10px}.modal-actions button{flex:1}
-.toast{position:fixed;top:20px;right:20px;background:var(--blue);color:#fff;padding:14px 18px;border-radius:14px;z-index:99999;font-weight:bold;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.mobile-top{display:none;background:#151821;border-bottom:1px solid #272b36;padding:12px;align-items:center;justify-content:space-between}.mobile-menu{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1200}.mobile-menu .sidebar{display:block;width:280px;height:100%;position:absolute;left:0;top:0}
-@media(max-width:900px){body{overflow:auto}.layout{display:block;height:auto;min-height:100vh}.sidebar{display:none}.main{padding:12px}.mobile-top{display:flex}.top-grid{grid-template-columns:repeat(2,1fr);gap:10px}.stat-value{font-size:21px}th,td{font-size:11px;padding:8px}.mobile-menu.open{display:block}}
-</style>
-</head>
-<body>
-<div id="loginView" class="login-wrap">
-  <div class="login-card">
-    <img src="logo-nodo.png" class="logo" alt="NODO">
-    <h2 style="margin-bottom:18px">PANEL ADMIN LITE</h2>
-    <label>Usuario</label><input id="loginUsuario" autocomplete="username">
-    <label>Clave</label><input id="loginClave" type="password" autocomplete="current-password">
-    <button class="btn btn-primary" onclick="login()">Ingresar</button>
-    <div id="loginMsg" style="margin-top:12px"></div>
-  </div>
-</div>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Admin · Supabase</title>
 
-<div id="appView" class="hidden">
-  <div class="mobile-top"><button class="mini-btn blue" onclick="abrirMenuMobile()">☰ Menú</button><b>NODO Admin Lite</b><button class="mini-btn red" onclick="cerrarSesion()">Salir</button></div>
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <img src="logo-nodo.png" class="logo" alt="NODO">
-      <div class="card"><div id="adminInfo"></div></div>
-      <button id="navInicio" class="nav-btn active" onclick="mostrarVista('inicio')">🏠 Inicio</button>
-      <button id="navSolicitudes" class="nav-btn" onclick="mostrarVista('solicitudes')">📋 Solicitudes <span id="badgeSolicitudes" class="badge-alert hidden">0</span></button>
-      <button id="navContactos" class="nav-btn" onclick="mostrarVista('contactos')">👤 Contactos WTK</button>
-      <button id="navBilleteras" class="nav-btn" onclick="mostrarVista('billeteras')">💳 Billeteras</button>
-      <button id="navOperadores" class="nav-btn" onclick="mostrarVista('operadores')">👥 Operadores</button>
-      <button class="nav-btn" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #111827;
+      --panel2: #1f2937;
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #374151;
+      --primary: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --blue: #3b82f6;
+      --violet: #8b5cf6;
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top left, #1e293b, var(--bg) 42%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    button, input, select, textarea { font-family: inherit; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      border-right: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 22px 16px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand {
+      padding: 8px 10px 22px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .brand h1 { margin: 0; font-size: 22px; }
+    .brand p { margin: 7px 0 0; color: var(--muted); font-size: 13px; }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      padding: 12px 14px;
+      border: 1px solid transparent;
+      border-radius: 13px;
+      background: transparent;
+      color: #d1d5db;
+      cursor: pointer;
+      font-weight: 700;
+      text-align: left;
+      transition: 0.18s ease;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background: rgba(34, 197, 94, 0.12);
+      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.28);
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
+    main { min-width: 0; padding: 24px; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    .topbar h2 { margin: 0; font-size: 26px; }
+    .topbar p { margin: 7px 0 0; color: var(--muted); font-size: 14px; }
+
+    .top-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.22);
+    }
+
+    .stat small { display: block; color: var(--muted); margin-bottom: 8px; font-size: 13px; }
+    .stat strong { font-size: 25px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 390px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .grid-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(17, 24, 39, 0.96);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+    }
+
+    .card-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-header h3 { margin: 0; font-size: 17px; }
+    .card-body { padding: 18px; }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #d1d5db;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #020617;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      padding: 11px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    textarea { min-height: 72px; resize: vertical; }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(34,197,94,0.14);
+    }
+
+    .form-row { margin-bottom: 13px; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #fff;
+      background: var(--panel2);
+      transition: 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); filter: brightness(1.07); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .btn-primary { background: var(--primary); color: #052e16; }
+    .btn-danger { background: var(--danger); }
+    .btn-warning { background: var(--warning); color: #111827; }
+    .btn-blue { background: var(--blue); }
+    .btn-violet { background: var(--violet); }
+    .btn-small { padding: 7px 9px; border-radius: 9px; font-size: 12px; }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(31,41,55,0.42);
+    }
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    th { color: #d1d5db; background: rgba(2,6,23,0.52); }
+
+    .muted { color: var(--muted); }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .pill-ok { background: rgba(34,197,94,0.12); color: #86efac; border-color: rgba(34,197,94,0.32); }
+    .pill-off { background: rgba(239,68,68,0.12); color: #fca5a5; border-color: rgba(239,68,68,0.32); }
+    .pill-warn { background: rgba(245,158,11,0.13); color: #fcd34d; border-color: rgba(245,158,11,0.32); }
+    .pill-blue { background: rgba(59,130,246,0.12); color: #93c5fd; border-color: rgba(59,130,246,0.32); }
+    .pill-violet { background: rgba(139,92,246,0.12); color: #c4b5fd; border-color: rgba(139,92,246,0.32); }
+
+    .row-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+
+    .empty { padding: 26px; color: var(--muted); text-align: center; }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 50;
+      background: #020617;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 12px;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+      display: none;
+      max-width: 420px;
+    }
+
+    .toast.show { display: block; }
+    .toast.ok { border-color: rgba(34,197,94,0.58); }
+    .toast.error { border-color: rgba(239,68,68,0.68); }
+    .toast.warn { border-color: rgba(245,158,11,0.68); }
+
+    .loading { opacity: 0.72; pointer-events: none; }
+
+    .notice {
+      background: rgba(245,158,11,0.12);
+      border: 1px solid rgba(245,158,11,0.32);
+      color: #fde68a;
+      padding: 13px 14px;
+      border-radius: 13px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      line-height: 1.42;
+    }
+
+    .list { display: grid; gap: 10px; }
+
+    .list-item {
+      border: 1px solid var(--border);
+      background: rgba(2,6,23,0.38);
+      border-radius: 13px;
+      padding: 13px;
+    }
+
+    .list-item strong { display: block; margin-bottom: 5px; }
+    .list-item span { color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 1180px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: relative; height: auto; }
+      .grid-2, .grid-dashboard { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr 1fr; }
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      main { padding: 14px; }
+      .topbar { flex-direction: column; }
+      .filters, .form-grid-2, .form-grid-3, .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <h1>Panel Admin</h1>
+        <p>Control central conectado a Supabase.</p>
+      </div>
+
+      <button class="nav-btn active" data-section="dashboard" onclick="showSection('dashboard')">Dashboard <span class="nav-badge" id="badgeDashboard">0</span></button>
+      <button class="nav-btn" data-section="operadores" onclick="showSection('operadores')">Operadores <span class="nav-badge" id="badgeOperadores">0</span></button>
+      <button class="nav-btn" data-section="billeteras" onclick="showSection('billeteras')">Billeteras <span class="nav-badge" id="badgeBilleteras">0</span></button>
+      <button class="nav-btn" data-section="pcs" onclick="showSection('pcs')">PCs <span class="nav-badge" id="badgePcs">0</span></button>
+      <button class="nav-btn" data-section="configuracion" onclick="showSection('configuracion')">Configuración <span class="nav-badge" id="badgeConfig">0</span></button>
     </aside>
 
-    <main class="main">
-      <section id="viewInicio">
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-          <div><h1 style="font-size:26px">Inicio admin</h1><div class="small">Control simple de solicitudes, billeteras y contactos Whaticket.</div></div>
-          <button class="mini-btn blue" onclick="refrescarTodo(true)">🔄 Actualizar</button>
+    <main>
+      <div class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageSubtitle">Resumen general del sistema.</p>
         </div>
-        <div class="filters"><select id="pcGlobal" onchange="cambiarPcGlobal()"></select></div>
-        <div id="alertas"></div>
-        <div class="top-grid">
-          <div class="stat-card"><div class="stat-title">Solicitudes pendientes</div><div class="stat-value" id="statPendientes">0</div><div class="stat-sub">Landing / panel</div></div>
-          <div class="stat-card"><div class="stat-title">Billetera en landing</div><div class="stat-value" id="statBilletera">-</div><div class="stat-sub" id="statBilleteraTipo">-</div></div>
-          <div class="stat-card"><div class="stat-title">Contactos visibles</div><div class="stat-value" id="statContactos">0</div><div class="stat-sub">Base WTK de la PC</div></div>
+        <div class="top-actions">
+          <button class="btn-blue" onclick="reloadAll()">Actualizar todo</button>
         </div>
-        <div class="card"><h2 class="card-title">Solicitudes pendientes</h2><div id="tablaSolicitudesInicio"></div></div>
+      </div>
+
+      <section id="section-dashboard" class="section active">
+        <div class="notice">
+          Antes de usarlo, reemplazá <strong>SUPABASE_URL</strong> y <strong>SUPABASE_ANON_KEY</strong> dentro del script. Las tablas esperadas son: <strong>operadores</strong>, <strong>billeteras</strong>, <strong>pcs</strong> y <strong>configuracion</strong>.
+        </div>
+
+        <div class="stats">
+          <div class="stat"><small>Operadores activos</small><strong id="statOperadoresActivos">0</strong></div>
+          <div class="stat"><small>Billeteras activas</small><strong id="statBilleterasActivas">0</strong></div>
+          <div class="stat"><small>Billetera manual</small><strong id="statBilleteraManual">0</strong></div>
+          <div class="stat"><small>PCs activas</small><strong id="statPcsActivas">0</strong></div>
+        </div>
+
+        <div class="grid-dashboard">
+          <div class="card">
+            <div class="card-header"><h3>Alertas</h3></div>
+            <div class="card-body"><div class="list" id="alertList"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Resumen por turno</h3></div>
+            <div class="card-body"><div class="list" id="turnoList"></div></div>
+          </div>
+        </div>
       </section>
 
-      <section id="viewSolicitudes" class="hidden">
-        <div class="card">
-          <h2 class="card-title">📋 Solicitudes</h2>
-          <div class="filters">
-            <select id="filtroEstado" onchange="renderSolicitudes()"><option value="">Todas</option><option value="PENDIENTE">Pendientes</option><option value="REALIZADAS">Realizadas</option><option value="RECHAZADA">Rechazadas</option></select>
-            <select id="filtroTipo" onchange="renderSolicitudes()"><option value="">Todos los tipos</option><option value="CARGA">Carga</option><option value="RETIRO">Retiro</option></select>
-            <input id="filtroTexto" placeholder="Buscar usuario / nombre / billetera" oninput="renderSolicitudes()">
-          </div>
-          <div id="tablaSolicitudesCompleta"></div>
-        </div>
-      </section>
-
-      <section id="viewContactos" class="hidden">
-        <div class="card">
-          <h2 class="card-title">👤 Contactos Whaticket</h2>
-          <div class="alert-box">Importá el CSV de Whaticket por PC/agente. Detecta usuario//titular, titular//usuario o usuario solo.</div>
-          <div class="filters">
-            <select id="contactosPc" onchange="cambiarPcDesdeContactos()"></select>
-            <input id="contactosAgente" placeholder="Agente ID / nombre de lista, ej: AG-P3">
-            <input id="contactosBuscar" placeholder="Buscar usuario / teléfono / titular" oninput="cargarContactosDebounced()">
-          </div>
-          <div class="filters">
-            <input id="contactosCsv" type="file" accept=".csv,text/csv">
-            <button class="btn btn-primary" onclick="importarContactos()">Importar CSV WTK</button>
-          </div>
-          <div id="contactosMsg"></div>
-
-          <div class="card" style="background:#111720">
-            <h3 style="margin-bottom:10px">Probar validación</h3>
-            <div class="filters">
-              <input id="testUsuario" placeholder="Usuario">
-              <input id="testTelefono" placeholder="Teléfono">
-              <button class="btn btn-yellow" onclick="probarValidacion()">Validar</button>
+      <section id="section-operadores" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 id="operadorFormTitle">Crear operador</h3><button class="btn-small" onclick="resetOperadorForm()">Limpiar</button></div>
+            <div class="card-body">
+              <form id="operadorForm">
+                <input type="hidden" id="op_id" />
+                <div class="form-row"><label>Nombre</label><input id="op_nombre" placeholder="Ej: Agustina" required /></div>
+                <div class="form-grid-2">
+                  <div class="form-row"><label>Usuario</label><input id="op_usuario" placeholder="Ej: agustina" /></div>
+                  <div class="form-row"><label>Teléfono</label><input id="op_telefono" placeholder="Ej: 11..." /></div>
+                </div>
+                <div class="form-row"><label>Email</label><input id="op_email" type="email" placeholder="correo@ejemplo.com" /></div>
+                <div class="form-grid-3">
+                  <div class="form-row"><label>PC</label><select id="op_pc"></select></div>
+                  <div class="form-row"><label>Turno</label><select id="op_turno"><option value="">Seleccionar</option><option value="TM">TM · 06 a 14</option><option value="TT">TT · 14 a 22</option><option value="TN">TN · 22 a 06</option></select></div>
+                  <div class="form-row"><label>Rol</label><select id="op_rol"><option value="operador">Operador</option><option value="supervisor">Supervisor</option><option value="admin">Admin</option><option value="caja">Caja</option><option value="soporte">Soporte</option><option value="franquero">Franquero</option></select></div>
+                </div>
+                <div class="form-row"><label>Activo</label><select id="op_activo"><option value="true">Sí</option><option value="false">No</option></select></div>
+                <div class="form-row"><label>Observaciones</label><textarea id="op_observaciones" placeholder="Notas internas"></textarea></div>
+                <div class="actions"><button class="btn-primary" type="submit">Guardar operador</button><button type="button" onclick="resetOperadorForm()">Cancelar</button></div>
+              </form>
             </div>
-            <div id="validacionMsg"></div>
           </div>
 
-          <h3 style="margin:18px 0 10px">Base cargada</h3>
-          <div id="tablaContactos"></div>
+          <div class="card">
+            <div class="card-header"><h3>Operadores cargados</h3><button class="btn-blue btn-small" onclick="loadOperadores()">Actualizar</button></div>
+            <div class="filters">
+              <input id="op_search" placeholder="Buscar operador..." oninput="renderOperadores()" />
+              <select id="op_filter_turno" onchange="renderOperadores()"><option value="">Todos los turnos</option><option value="TM">TM</option><option value="TT">TT</option><option value="TN">TN</option></select>
+              <select id="op_filter_pc" onchange="renderOperadores()"></select>
+              <select id="op_filter_activo" onchange="renderOperadores()"><option value="">Todos</option><option value="true">Activos</option><option value="false">Inactivos</option></select>
+              <button onclick="clearOperadorFilters()">Reset</button>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Usuario</th><th>Turno</th><th>PC</th><th>Rol</th><th>Activo</th><th>Acciones</th></tr></thead><tbody id="operadoresBody"><tr><td colspan="8" class="empty">Cargando...</td></tr></tbody></table></div>
+          </div>
         </div>
       </section>
 
-      <section id="viewBilleteras" class="hidden">
-        <div class="card"><h2 class="card-title">💳 Billeteras</h2><div class="alert-box">Ver y elegir cuál billetera queda activa para landing.</div><div id="walletsGrid" class="wallet-grid"></div></div>
+      <section id="section-billeteras" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 id="billeteraFormTitle">Crear billetera</h3><button class="btn-small" onclick="resetBilleteraForm()">Limpiar</button></div>
+            <div class="card-body">
+              <form id="billeteraForm">
+                <input type="hidden" id="bi_id" />
+                <div class="form-grid-2">
+                  <div class="form-row"><label>PC / Grupo</label><select id="bi_p3"></select></div>
+                  <div class="form-row"><label>Tipo / Banco</label><select id="bi_banco"><option value="">Seleccionar</option><option value="MP">Mercado Pago</option><option value="UALA">Ualá</option><option value="NJX">Naranja X</option><option value="PERSONAL PAY">Personal Pay</option><option value="BRUBANK">Brubank</option><option value="PREX">Prex</option><option value="OTRO">Otro</option></select></div>
+                </div>
+                <div class="form-row"><label>Nombre visible</label><input id="bi_nombre_visible" placeholder="Ej: 1138 - RODRIGUEZ MP" required /></div>
+                <div class="form-row"><label>Titular</label><input id="bi_titular" placeholder="Nombre del titular" /></div>
+                <div class="form-row"><label>Alias</label><input id="bi_alias" placeholder="alias.billetera" /></div>
+                <div class="form-row"><label>CBU / CVU</label><input id="bi_cbu" placeholder="CBU o CVU" /></div>
+                <div class="form-grid-2">
+                  <div class="form-row"><label>Estado</label><select id="bi_estado"><option value="activa">Activa</option><option value="pausada">Pausada</option><option value="caida">Caída</option><option value="revision">En revisión</option><option value="inactiva">Inactiva</option></select></div>
+                  <div class="form-row"><label>Prioridad</label><input id="bi_prioridad" type="number" min="0" step="1" value="0" /></div>
+                </div>
+                <div class="form-grid-2">
+                  <div class="form-row"><label>Orden</label><input id="bi_orden" type="number" min="0" step="1" value="0" /></div>
+                  <div class="form-row"><label>Activa</label><select id="bi_activa"><option value="true">Sí</option><option value="false">No</option></select></div>
+                </div>
+                <div class="form-row"><label>Seleccionada manual</label><select id="bi_manual"><option value="false">No</option><option value="true">Sí</option></select></div>
+                <div class="form-row"><label>Observaciones</label><textarea id="bi_observaciones" placeholder="Notas internas"></textarea></div>
+                <div class="actions"><button class="btn-primary" type="submit">Guardar billetera</button><button type="button" onclick="resetBilleteraForm()">Cancelar</button></div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><h3>Billeteras cargadas</h3><button class="btn-blue btn-small" onclick="loadBilleteras()">Actualizar</button></div>
+            <div class="filters">
+              <input id="bi_search" placeholder="Buscar billetera..." oninput="renderBilleteras()" />
+              <select id="bi_filter_banco" onchange="renderBilleteras()"><option value="">Todos los tipos</option><option value="MP">MP</option><option value="UALA">Ualá</option><option value="NJX">Naranja X</option><option value="PERSONAL PAY">Personal Pay</option><option value="BRUBANK">Brubank</option><option value="PREX">Prex</option><option value="OTRO">Otro</option></select>
+              <select id="bi_filter_pc" onchange="renderBilleteras()"></select>
+              <select id="bi_filter_activa" onchange="renderBilleteras()"><option value="">Todas</option><option value="true">Activas</option><option value="false">Inactivas</option></select>
+              <button onclick="clearBilleteraFilters()">Reset</button>
+            </div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>PC</th><th>Nombre</th><th>Titular</th><th>Banco</th><th>Alias</th><th>Estado</th><th>Prioridad</th><th>Manual</th><th>Acciones</th></tr></thead><tbody id="billeterasBody"><tr><td colspan="10" class="empty">Cargando...</td></tr></tbody></table></div>
+          </div>
+        </div>
       </section>
 
-      <section id="viewOperadores" class="hidden">
-        <div class="card"><h2 class="card-title">👥 Operadores</h2><div id="tablaOperadores"></div></div>
+      <section id="section-pcs" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 id="pcFormTitle">Crear PC</h3><button class="btn-small" onclick="resetPcForm()">Limpiar</button></div>
+            <div class="card-body">
+              <form id="pcForm">
+                <input type="hidden" id="pc_id" />
+                <div class="form-row"><label>Nombre</label><input id="pc_nombre" placeholder="Ej: PC1" required /></div>
+                <div class="form-row"><label>Descripción</label><textarea id="pc_descripcion" placeholder="Detalle interno"></textarea></div>
+                <div class="form-row"><label>Activa</label><select id="pc_activa"><option value="true">Sí</option><option value="false">No</option></select></div>
+                <div class="actions"><button class="btn-primary" type="submit">Guardar PC</button><button type="button" onclick="resetPcForm()">Cancelar</button></div>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>PCs cargadas</h3><button class="btn-blue btn-small" onclick="loadPcs()">Actualizar</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Descripción</th><th>Activa</th><th>Acciones</th></tr></thead><tbody id="pcsBody"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-configuracion" class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header"><h3 id="configFormTitle">Crear configuración</h3><button class="btn-small" onclick="resetConfigForm()">Limpiar</button></div>
+            <div class="card-body">
+              <form id="configForm">
+                <input type="hidden" id="cfg_id" />
+                <div class="form-row"><label>Clave</label><input id="cfg_clave" placeholder="Ej: modo_mantenimiento" required /></div>
+                <div class="form-row"><label>Valor</label><input id="cfg_valor" placeholder="Ej: false" /></div>
+                <div class="form-row"><label>Descripción</label><textarea id="cfg_descripcion" placeholder="Para qué sirve esta configuración"></textarea></div>
+                <div class="actions"><button class="btn-primary" type="submit">Guardar configuración</button><button type="button" onclick="resetConfigForm()">Cancelar</button></div>
+              </form>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Configuraciones</h3><button class="btn-blue btn-small" onclick="loadConfig()">Actualizar</button></div>
+            <div class="table-wrap"><table><thead><tr><th>ID</th><th>Clave</th><th>Valor</th><th>Descripción</th><th>Acciones</th></tr></thead><tbody id="configBody"><tr><td colspan="5" class="empty">Cargando...</td></tr></tbody></table></div>
+          </div>
+        </div>
       </section>
     </main>
   </div>
-</div>
 
-<div id="mobileMenu" class="mobile-menu" onclick="cerrarMenuMobile(event)"></div>
-<div id="modalOverlay" class="modal-overlay hidden"><div class="modal"><div id="modalTitle" class="modal-title">Modal</div><div id="modalBody"></div><div class="modal-actions"><button class="btn btn-gray" onclick="cerrarModal()">Cancelar</button><button id="modalSaveBtn" class="btn btn-primary">Guardar</button></div></div></div>
+  <div id="toast" class="toast"></div>
 
-<script>
-const API_URL = "https://script.google.com/macros/s/AKfycby8lDKNrZJFXaMbwQtta-W3iki5Wqg0sbg_EUkd84XvHTSkNF-7t8-K3ffSYd5hi7m2/exec";
-const PCS = ["P1","P2","P3","P4","P5"];
-let admin=null, pcGlobal="P1", solicitudes=[], billeteras=[], contactos=[], operadores=[], timersIniciados=false, lastPendientesIds=new Set(), contactTimer=null;
+  <script>
+    const SUPABASE_URL = "https://pjvvyvfcwjoocjqvdror.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_NYqRoKptTgcL90VAVF2kqA_Gl06mEUF";
 
-window.addEventListener("load",()=>{
-  const saved=localStorage.getItem("nodo_admin_lite");
-  const pc=localStorage.getItem("nodo_admin_lite_pc");
-  if(saved){
-    try{
-      admin=JSON.parse(saved);
-      pcGlobal=pc||admin.pc||admin.PC||"P1";
-      finalizarLogin(false);
-    }catch(e){
-      localStorage.removeItem("nodo_admin_lite");
-      localStorage.removeItem("nodo_admin_lite_pc");
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const TABLES = {
+      operadores: "operadores",
+      billeteras: "billeteras",
+      pcs: "pcs",
+      config: "configuracion"
+    };
+
+    let operadores = [];
+    let billeteras = [];
+    let pcs = [];
+    let configuracion = [];
+
+    const $ = (id) => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      $("operadorForm").addEventListener("submit", saveOperador);
+      $("billeteraForm").addEventListener("submit", saveBilletera);
+      $("pcForm").addEventListener("submit", savePc);
+      $("configForm").addEventListener("submit", saveConfig);
+      reloadAll();
+    });
+
+    function showSection(name) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      $(`section-${name}`).classList.add("active");
+      document.querySelector(`[data-section="${name}"]`).classList.add("active");
+
+      const titles = {
+        dashboard: ["Dashboard", "Resumen general del sistema."],
+        operadores: ["Operadores", "Crear, editar, activar, desactivar o eliminar operadores."],
+        billeteras: ["Billeteras", "Administrar cuentas, estados, prioridad y selección manual."],
+        pcs: ["PCs", "Administrar PCs / sectores disponibles."],
+        configuracion: ["Configuración", "Parámetros generales del sistema."]
+      };
+
+      $("pageTitle").textContent = titles[name][0];
+      $("pageSubtitle").textContent = titles[name][1];
     }
-  }
-});
 
-function normalizar(v){return String(v||"").trim().toUpperCase()}
-function setBox(id,html){const el=document.getElementById(id);if(el)el.innerHTML=html}
-function val(id){return document.getElementById(id)?.value||""}
-function money(v){return Number(v||0).toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0})}
-function toast(msg,type="blue"){const div=document.createElement("div");div.className="toast";div.style.background=type==="red"?"#f04438":type==="green"?"#12b76a":"#3d5afe";div.innerText=msg;document.body.appendChild(div);setTimeout(()=>div.remove(),3500)}
-function formatFecha(f){const d=new Date(f);if(isNaN(d))return f||"";return d.toLocaleDateString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",day:"2-digit",month:"2-digit"})+" · "+d.toLocaleTimeString("es-AR",{timeZone:"America/Argentina/Buenos_Aires",hour:"2-digit",minute:"2-digit"})}
-function esPendiente(s){const e=normalizar(s.ESTADO);return e.includes("PENDIENTE")||e==="NUEVA"||e==="NUEVO"||e==="EN_REVISION"}
-function esRealizada(s){const e=normalizar(s.ESTADO);return ["APROBADA_MANUAL","APROBADA_MANUAL_OK","ACREDITADA","PAGADA","APROBADA"].includes(e)}
-function estadoBadge(e){const x=normalizar(e);if(esRealizada({ESTADO:e}))return`<span class="badge badge-ok">${e}</span>`;if(["RECHAZADA","ERROR"].includes(x))return`<span class="badge badge-danger">${e}</span>`;return`<span class="badge badge-pending">${e||"-"}</span>`}
+    async function reloadAll() {
+      setLoading(true);
+      await Promise.allSettled([loadPcs(false), loadOperadores(false), loadBilleteras(false), loadConfig(false)]);
+      fillPcSelects();
+      renderAll();
+      setLoading(false);
+      showToast("Datos actualizados", "ok");
+    }
 
-async function api(data){
-  const params = new URLSearchParams();
-  Object.keys(data).forEach(k=>params.append(k,data[k]??""));
-  const res = await fetch(API_URL + "?" + params.toString(), {method:"GET"});
-  const text = await res.text();
-  try{return JSON.parse(text)}catch(e){console.error(text);return{ok:false,error:"Respuesta inválida de API"}}
-}
-async function apiPostNoCors(data){
-  await fetch(API_URL, {method:"POST",mode:"no-cors",body:JSON.stringify(data)});
-  return {ok:true};
-}
+    async function loadOperadores(render = true) {
+      const { data, error } = await supabaseClient.from(TABLES.operadores).select("*").order("nombre", { ascending: true });
+      if (error) return handleError("Error al cargar operadores", error, "operadoresBody", 8);
+      operadores = data || [];
+      if (render) renderAll();
+    }
 
-async function login(){
-  const usuario=val("loginUsuario").trim(), clave=val("loginClave").trim();
-  if(!usuario||!clave){setBox("loginMsg",`<div class="alert-box">Completá usuario y clave.</div>`);return}
-  setBox("loginMsg",`<div class="alert-box">Ingresando...</div>`);
-  const r=await api({action:"login",usuario,clave});
-  if(!r.ok){setBox("loginMsg",`<div class="err-box">${r.error||"Error"}</div>`);return}
-  admin=r.operador;
-  if(!["ADMIN","ENCARGADO"].includes(normalizar(admin.rol||admin.ROL))){
-    setBox("loginMsg",`<div class="err-box">Este panel es solo para ADMIN / ENCARGADO.</div>`);
-    return;
-  }
-  pcGlobal=admin.pc&&normalizar(admin.rol)!=="ADMIN"?admin.pc:(localStorage.getItem("nodo_admin_lite_pc")||"P1");
-  finalizarLogin(true);
-}
-function finalizarLogin(guardar=true){
-  if(guardar){
-    localStorage.setItem("nodo_admin_lite",JSON.stringify(admin));
-    localStorage.setItem("nodo_admin_lite_pc",pcGlobal);
-  }
-  document.getElementById("loginView").classList.add("hidden");
-  document.getElementById("appView").classList.remove("hidden");
-  setBox("adminInfo",`<b>${admin.nombre||admin.NOMBRE||admin.usuario}</b><br><span class="badge badge-blue">Rol: ${admin.rol||admin.ROL}</span><span class="badge badge-ok">PC: ${pcGlobal}</span>`);
-  inicializarSelects();
-  refrescarTodo(false);
-  if(!timersIniciados){
-    timersIniciados=true;
-    setInterval(()=>cargarSolicitudes(true),6000);
-  }
-}
-function inicializarSelects(){
-  ["pcGlobal","contactosPc"].forEach(id=>{
-    const sel=document.getElementById(id); if(!sel)return;
-    const lista=normalizar(admin.rol||admin.ROL)==="ADMIN"?PCS:[admin.pc||admin.PC||pcGlobal];
-    sel.innerHTML=lista.map(pc=>`<option value="${pc}">${pc}</option>`).join("");
-    sel.value=pcGlobal;
-  });
-}
-function cambiarPcGlobal(){pcGlobal=val("pcGlobal")||"P1";localStorage.setItem("nodo_admin_lite_pc",pcGlobal);inicializarSelects();refrescarTodo(true)}
-function cambiarPcDesdeContactos(){pcGlobal=val("contactosPc")||pcGlobal;document.getElementById("pcGlobal").value=pcGlobal;localStorage.setItem("nodo_admin_lite_pc",pcGlobal);refrescarTodo(true)}
+    async function loadBilleteras(render = true) {
+      const { data, error } = await supabaseClient.from(TABLES.billeteras).select("*").order("prioridad", { ascending: false }).order("orden", { ascending: true }).order("id", { ascending: true });
+      if (error) return handleError("Error al cargar billeteras", error, "billeterasBody", 10);
+      billeteras = data || [];
+      if (render) renderAll();
+    }
 
-function mostrarVista(vista){
-  ["Inicio","Solicitudes","Contactos","Billeteras","Operadores"].forEach(v=>{
-    document.getElementById("view"+v)?.classList.add("hidden");
-    document.getElementById("nav"+v)?.classList.remove("active");
-  });
-  const cap=vista.charAt(0).toUpperCase()+vista.slice(1);
-  document.getElementById("view"+cap)?.classList.remove("hidden");
-  document.getElementById("nav"+cap)?.classList.add("active");
-  if(vista==="solicitudes")renderSolicitudes();
-  if(vista==="contactos")cargarContactos(true);
-  if(vista==="billeteras")cargarBilleteras(true);
-  if(vista==="operadores")cargarOperadores();
-  cerrarMenuMobile();
-}
-async function refrescarTodo(showToast=true){
-  await cargarSolicitudes(false);
-  await cargarBilleteras(false);
-  await cargarContactos(false);
-  renderInicio();
-  if(showToast)toast("Panel actualizado","green");
-}
-async function cargarSolicitudes(silencioso=false){
-  const r=await api({action:"listarsolicitudesoperador",usuario:admin.usuario,operador:admin.nombre,pc:pcGlobal,pcOperativa:pcGlobal});
-  if(!r.ok){toast(r.error||"Error solicitudes","red");return}
-  solicitudes=(r.solicitudes||r.data||[]).slice().sort((a,b)=>new Date(b.FECHA_CREACION||b.FECHA||0)-new Date(a.FECHA_CREACION||a.FECHA||0));
-  renderSolicitudes();renderInicio();verificarSolicitudes(silencioso);
-}
-async function cargarBilleteras(render=true){
-  const r=await api({action:"getbilleteras",usuario:admin.usuario,operador:admin.nombre,pc:pcGlobal});
-  if(!r.ok)return;
-  billeteras=r.billeteras||[];
-  if(render)renderBilleteras();
-  renderInicio();
-}
-async function cargarContactos(render=true){
-  const r=await api({action:"listarcontactoswhaticket",usuario:admin.usuario,operador:admin.nombre,pc:pcGlobal,texto:val("contactosBuscar")});
-  if(!r.ok){if(render)setBox("tablaContactos",`<div class="err-box">${r.error||"Error contactos"}</div>`);return}
-  contactos=r.contactos||[];
-  if(render)renderContactos();
-  renderInicio();
-}
-function cargarContactosDebounced(){clearTimeout(contactTimer);contactTimer=setTimeout(()=>cargarContactos(true),350)}
-async function cargarOperadores(){
-  const r=await api({action:"listaroperadores",usuario:admin.usuario,operador:admin.nombre});
-  operadores=r.ok?(r.operadores||r.data||[]):[];
-  renderOperadores();
-}
-function renderInicio(){
-  const pendientes=solicitudes.filter(esPendiente);
-  const bil=billeteras.find(b=>normalizar(b.SELECCIONADA_MANUAL)==="SI") || billeteras.find(b=>normalizar(b.ACTIVA)==="SI") || {};
-  setBox("statPendientes",pendientes.length);
-  setBox("statBilletera",bil.NOMBRE_VISIBLE||bil.BILLETERA_NOMBRE||"-");
-  setBox("statBilleteraTipo",bil.TIPO?`${bil.TIPO} · ${bil.PC||pcGlobal}`:"-");
-  setBox("statContactos",contactos.length);
-  setBox("alertas",pendientes.length?`<div class="alert-box">🔔 Hay ${pendientes.length} solicitud/es pendiente/s.</div>`:"");
-  setBox("tablaSolicitudesInicio",tablaSolicitudesHTML(pendientes.slice(0,30)));
-}
-function renderSolicitudes(){
-  let lista=solicitudes.slice();
-  const estado=val("filtroEstado"), tipo=val("filtroTipo"), texto=normalizar(val("filtroTexto"));
-  if(estado==="PENDIENTE")lista=lista.filter(esPendiente);
-  if(estado==="REALIZADAS")lista=lista.filter(esRealizada);
-  if(estado==="RECHAZADA")lista=lista.filter(s=>normalizar(s.ESTADO)==="RECHAZADA");
-  if(tipo)lista=lista.filter(s=>normalizar(s.TIPO_SOLICITUD||s.TIPO)===tipo);
-  if(texto)lista=lista.filter(s=>normalizar(`${s.USUARIO||""} ${s.NOMBRE_COMPLETO||""} ${s.BILLETERA_NOMBRE||""} ${s.ID||""}`).includes(texto));
-  setBox("tablaSolicitudesCompleta",tablaSolicitudesHTML(lista));
-}
-function tablaSolicitudesHTML(lista){
-  if(!lista.length)return`<div class="alert-box">No hay solicitudes para mostrar.</div>`;
-  let html=`<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Usuario</th><th>Billetera</th><th>Monto</th><th>Estado</th><th>Tomó</th></tr></thead><tbody>`;
-  lista.forEach(s=>{
-    html+=`<tr><td>${formatFecha(s.FECHA_CREACION||s.FECHA)}</td><td>${s.TIPO_SOLICITUD||s.TIPO||"-"}</td><td><b>${s.USUARIO||s.USUARIO_JUGADOR||"-"}</b><br><span class="small">${s.NOMBRE_COMPLETO||""}</span></td><td>${s.BILLETERA_NOMBRE||s.NOMBRE_BILLETERA||s.ID_BILLETERA||"-"}</td><td>${money(s.MONTO_REAL||s.MONTO_DECLARADO||s.MONTO||0)}</td><td>${estadoBadge(s.ESTADO)}</td><td>${s.QUIEN_TOMO||"-"}</td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
-  return html;
-}
-function renderBilleteras(){
-  if(!billeteras.length){setBox("walletsGrid",`<div class="alert-box">No hay billeteras configuradas.</div>`);return}
-  let html="";
-  billeteras.forEach(b=>{
-    const activa=normalizar(b.ACTIVA)==="SI";
-    const seleccionada=normalizar(b.SELECCIONADA_MANUAL)==="SI";
-    html+=`<div class="wallet-card ${activa?"ok":"paused"} ${seleccionada?"selected":""}">
-      <div class="wallet-name">💳 ${b.NOMBRE_VISIBLE||b.BILLETERA_NOMBRE||b.ID_BILLETERA}</div>
-      <div class="wallet-type">${b.TIPO||""} · ${b.PC||pcGlobal}</div>
-      <div class="wallet-balance">${money(b.SALDO_REAL||b.SALDO_ESTIMADO||0)}</div>
-      <div>${activa?'<span class="badge badge-ok">ACTIVA</span>':'<span class="badge badge-danger">PAUSADA</span>'} ${seleccionada?'<span class="badge badge-blue">EN LANDING</span>':''}</div>
-      <div class="wallet-actions"><button class="mini-btn blue" onclick="seleccionarBilletera('${b.ID_BILLETERA}')">Poner en landing</button><button class="mini-btn green" onclick="cambiarEstadoBilletera('${b.ID_BILLETERA}','SI')">Activar</button><button class="mini-btn red" onclick="cambiarEstadoBilletera('${b.ID_BILLETERA}','NO')">Pausar</button></div>
-    </div>`;
-  });
-  setBox("walletsGrid",html);
-}
-async function seleccionarBilletera(id){const r=await api({action:"seleccionarbilletera",usuario:admin.usuario,operador:admin.nombre,idBilletera:id});if(!r.ok){alert(r.error||"Error");return}toast("Billetera puesta en landing","green");await cargarBilleteras(true)}
-async function cambiarEstadoBilletera(id,estado){const r=await api({action:"actualizarestadobilletera",usuario:admin.usuario,operador:admin.nombre,idBilletera:id,estadoBilletera:estado});if(!r.ok){alert(r.error||"Error");return}await cargarBilleteras(true)}
+    async function loadPcs(render = true) {
+      const { data, error } = await supabaseClient.from(TABLES.pcs).select("*").order("nombre", { ascending: true });
+      if (error) return handleError("Error al cargar PCs", error, "pcsBody", 5);
+      pcs = data || [];
+      fillPcSelects();
+      if (render) renderAll();
+    }
 
-async function importarContactos(){
-  const file=document.getElementById("contactosCsv").files[0];
-  if(!file){setBox("contactosMsg",`<div class="alert-box">Seleccioná un CSV.</div>`);return}
-  const csv=await file.text();
-  setBox("contactosMsg",`<div class="alert-box">Importando contactos...</div>`);
-  await apiPostNoCors({action:"importarcontactoswhaticket",usuario:admin.usuario,operador:admin.nombre,pc:val("contactosPc")||pcGlobal,agenteId:val("contactosAgente"),csv});
-  setBox("contactosMsg",`<div class="ok-box">Importación enviada. Esperá unos segundos y actualizá la lista.</div>`);
-  setTimeout(()=>cargarContactos(true),3500);
-}
-function renderContactos(){
-  let lista=contactos.slice();
-  if(!lista.length){setBox("tablaContactos",`<div class="alert-box">No hay contactos cargados para esta PC.</div>`);return}
-  let html=`<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Titular</th><th>Teléfono</th><th>Agente</th><th>Activo</th><th>Fecha</th><th>Acción</th></tr></thead><tbody>`;
-  lista.forEach(c=>{
-    html+=`<tr><td><b>${c.usuario||""}</b><br><span class="small">${c.usuarioMascara||""}</span></td><td>${c.titular||"-"}</td><td>${c.telefono||"-"}</td><td>${c.agenteId||"-"}</td><td>${normalizar(c.activo)!=="NO"?'<span class="badge badge-ok">SI</span>':'<span class="badge badge-danger">NO</span>'}</td><td>${formatFecha(c.fechaImportacion)}</td><td><button class="mini-btn yellow" onclick="abrirActualizarTelefono('${String(c.usuario||"").replaceAll("'","\\'")}','${c.telefono||""}')">Teléfono</button> <button class="mini-btn ${normalizar(c.activo)!=="NO"?'red':'green'}" onclick="cambiarEstadoContacto('${String(c.usuario||"").replaceAll("'","\\'")}','${normalizar(c.activo)!=="NO"?'NO':'SI'}')">${normalizar(c.activo)!=="NO"?'Desactivar':'Activar'}</button></td></tr>`;
-  });
-  html+=`</tbody></table></div>`;
-  setBox("tablaContactos",html);
-}
-async function probarValidacion(){
-  const r=await api({action:"validarusuariowhaticket",usuario:admin.usuario,operador:admin.nombre,pc:val("contactosPc")||pcGlobal,usuarioJugador:val("testUsuario"),telefono:val("testTelefono")});
-  if(!r.ok){setBox("validacionMsg",`<div class="err-box">${r.error||"Error"}</div>`);return}
-  if(r.valido){setBox("validacionMsg",`<div class="ok-box">✅ Validado: <b>${r.contacto.usuario}</b> · ${r.contacto.telefono}</div>`);return}
-  if(r.caso==="USUARIO_OTRO_TELEFONO"){setBox("validacionMsg",`<div class="alert-box">${r.mensaje}<br>Usuario: <b>${r.contacto.usuarioMascara}</b><br>Tel actual: ${r.contacto.telefonoMascara}</div>`);return}
-  if(r.caso==="TELEFONO_OTROS_USUARIOS"){setBox("validacionMsg",`<div class="alert-box">${r.mensaje}<br>${(r.opciones||[]).map(o=>`<span class="badge badge-blue">${o.usuarioMascara}</span>`).join(" ")}</div>`);return}
-  setBox("validacionMsg",`<div class="err-box">${r.mensaje||"No encontrado"}</div>`);
-}
-function abrirActualizarTelefono(usuario, telefono){
-  abrirModal("Actualizar teléfono",`<div class="ok-box">Usuario: <b>${usuario}</b></div><label>Nuevo teléfono</label><input id="nuevoTelefonoContacto" value="${telefono||""}">`,async()=>{
-    const r=await api({action:"actualizartelefonocontacto",usuario:admin.usuario,operador:admin.nombre,pc:pcGlobal,usuarioJugador:usuario,telefonoNuevo:val("nuevoTelefonoContacto")});
-    if(!r.ok){alert(r.error||"Error");return}
-    cerrarModal();toast("Teléfono actualizado","green");await cargarContactos(true);
-  },"Actualizar");
-}
-async function cambiarEstadoContacto(usuario, activo){const r=await api({action:"cambiarestadocontacto",usuario:admin.usuario,operador:admin.nombre,pc:pcGlobal,usuarioJugador:usuario,activo});if(!r.ok){alert(r.error||"Error");return}await cargarContactos(true)}
+    async function loadConfig(render = true) {
+      const { data, error } = await supabaseClient.from(TABLES.config).select("*").order("clave", { ascending: true });
+      if (error) return handleError("Error al cargar configuración", error, "configBody", 5);
+      configuracion = data || [];
+      if (render) renderAll();
+    }
 
-function renderOperadores(){
-  if(!operadores.length){setBox("tablaOperadores",`<div class="alert-box">No hay operadores para mostrar.</div>`);return}
-  let html=`<div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>PC</th><th>Tipo</th><th>Activo</th></tr></thead><tbody>`;
-  operadores.forEach(o=>{html+=`<tr><td>${o.NOMBRE||o.nombre||""}</td><td>${o.USUARIO||o.usuario||""}</td><td>${o.ROL||o.rol||""}</td><td>${o.PC||o.pc||""}</td><td>${o.TIPO_OPERADOR||o.tipoOperador||""}</td><td>${o.ACTIVO||""}</td></tr>`});
-  html+=`</tbody></table></div>`;
-  setBox("tablaOperadores",html);
-}
-function verificarSolicitudes(silencioso=false){
-  const pendientes=solicitudes.filter(esPendiente);
-  const ids=new Set(pendientes.map(s=>String(s.ID||s.SOLICITUD_ID||"")).filter(Boolean));
-  const badge=document.getElementById("badgeSolicitudes");
-  if(pendientes.length){badge.classList.remove("hidden");badge.innerText=pendientes.length}else badge.classList.add("hidden");
-  let nuevas=0;ids.forEach(id=>{if(!lastPendientesIds.has(id))nuevas++});
-  if(!silencioso||lastPendientesIds.size===0){lastPendientesIds=ids;return}
-  if(nuevas>0)toast(`🔔 ${nuevas} nueva/s solicitud/es`);
-  lastPendientesIds=ids;
-}
-function abrirModal(title,body,saveFn,saveText="Guardar"){setBox("modalTitle",title);setBox("modalBody",body);const btn=document.getElementById("modalSaveBtn");btn.innerText=saveText;btn.onclick=saveFn;document.getElementById("modalOverlay").classList.remove("hidden")}
-function cerrarModal(){document.getElementById("modalOverlay").classList.add("hidden")}
-function abrirMenuMobile(){const menu=document.getElementById("mobileMenu");menu.classList.add("open");menu.innerHTML="";const clone=document.getElementById("sidebar").cloneNode(true);clone.style.display="block";menu.appendChild(clone)}
-function cerrarMenuMobile(e){if(!e||e.target.id==="mobileMenu"){const menu=document.getElementById("mobileMenu");menu.classList.remove("open");menu.innerHTML=""}}
-function cerrarSesion(){localStorage.removeItem("nodo_admin_lite");localStorage.removeItem("nodo_admin_lite_pc");location.reload()}
-</script>
+    function renderAll() {
+      fillPcSelects();
+      renderOperadores();
+      renderBilleteras();
+      renderPcs();
+      renderConfig();
+      renderDashboard();
+      updateBadges();
+    }
+
+    async function saveOperador(e) {
+      e.preventDefault();
+      const id = $("op_id").value;
+      const payload = {
+        nombre: val("op_nombre"),
+        usuario: val("op_usuario"),
+        email: val("op_email"),
+        telefono: val("op_telefono"),
+        pc: val("op_pc"),
+        turno: val("op_turno"),
+        rol: val("op_rol"),
+        activo: boolVal("op_activo"),
+        observaciones: val("op_observaciones"),
+        updated_at: new Date().toISOString()
+      };
+
+      const res = id
+        ? await supabaseClient.from(TABLES.operadores).update(payload).eq("id", id)
+        : await supabaseClient.from(TABLES.operadores).insert([{ ...payload, created_at: new Date().toISOString() }]);
+
+      if (res.error) return showToast("Error al guardar operador: " + res.error.message, "error");
+      resetOperadorForm();
+      await loadOperadores();
+      showToast("Operador guardado", "ok");
+    }
+
+    function renderOperadores() {
+      const q = normalize(val("op_search"));
+      const turno = val("op_filter_turno");
+      const pc = val("op_filter_pc");
+      const activo = val("op_filter_activo");
+
+      const rows = operadores.filter(o => {
+        const text = normalize([o.id, o.nombre, o.usuario, o.email, o.telefono, o.pc, o.turno, o.rol, o.observaciones].join(" "));
+        return (!q || text.includes(q)) && (!turno || o.turno === turno) && (!pc || o.pc === pc) && (activo === "" || String(Boolean(o.activo)) === activo);
+      });
+
+      if (!rows.length) return empty("operadoresBody", 8, "No hay operadores para mostrar.");
+
+      $("operadoresBody").innerHTML = rows.map(o => `
+        <tr>
+          <td>${safe(o.id)}</td>
+          <td><strong>${safe(o.nombre)}</strong></td>
+          <td>${safe(o.usuario)}</td>
+          <td>${pill(o.turno || "Sin turno", "blue")}</td>
+          <td>${safe(o.pc)}</td>
+          <td>${pill(o.rol || "operador", "violet")}</td>
+          <td>${o.activo ? pill("Activo", "ok") : pill("Inactivo", "off")}</td>
+          <td><div class="row-actions">
+            <button class="btn-small btn-blue" onclick="editOperador('${o.id}')">Editar</button>
+            <button class="btn-small ${o.activo ? 'btn-warning' : 'btn-primary'}" onclick="toggleOperador('${o.id}', ${!Boolean(o.activo)})">${o.activo ? 'Desactivar' : 'Activar'}</button>
+            <button class="btn-small btn-danger" onclick="deleteRow('${TABLES.operadores}', '${o.id}', loadOperadores, 'operador')">Eliminar</button>
+          </div></td>
+        </tr>
+      `).join("");
+    }
+
+    function editOperador(id) {
+      const o = operadores.find(x => String(x.id) === String(id));
+      if (!o) return;
+      $("op_id").value = o.id;
+      $("op_nombre").value = o.nombre || "";
+      $("op_usuario").value = o.usuario || "";
+      $("op_email").value = o.email || "";
+      $("op_telefono").value = o.telefono || "";
+      $("op_pc").value = o.pc || "";
+      $("op_turno").value = o.turno || "";
+      $("op_rol").value = o.rol || "operador";
+      $("op_activo").value = String(Boolean(o.activo));
+      $("op_observaciones").value = o.observaciones || "";
+      $("operadorFormTitle").textContent = "Editar operador";
+      showSection("operadores");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function toggleOperador(id, activo) {
+      const { error } = await supabaseClient.from(TABLES.operadores).update({ activo, updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return showToast("Error al cambiar estado: " + error.message, "error");
+      await loadOperadores();
+      showToast("Estado del operador actualizado", "ok");
+    }
+
+    function resetOperadorForm() {
+      $("operadorForm").reset();
+      $("op_id").value = "";
+      $("op_rol").value = "operador";
+      $("op_activo").value = "true";
+      $("operadorFormTitle").textContent = "Crear operador";
+    }
+
+    function clearOperadorFilters() {
+      $("op_search").value = "";
+      $("op_filter_turno").value = "";
+      $("op_filter_pc").value = "";
+      $("op_filter_activo").value = "";
+      renderOperadores();
+    }
+
+    async function saveBilletera(e) {
+      e.preventDefault();
+      const id = $("bi_id").value;
+      const manual = boolVal("bi_manual");
+
+      const payload = {
+        P3: val("bi_p3"),
+        nombre_visible: val("bi_nombre_visible"),
+        titular: val("bi_titular"),
+        alias: val("bi_alias"),
+        cbu: val("bi_cbu"),
+        banco: val("bi_banco"),
+        estado: val("bi_estado"),
+        prioridad: numVal("bi_prioridad"),
+        activa: boolVal("bi_activa"),
+        seleccionada_manual: manual,
+        orden: numVal("bi_orden"),
+        observaciones: val("bi_observaciones"),
+        updated_at: new Date().toISOString()
+      };
+
+      if (manual) {
+        await supabaseClient.from(TABLES.billeteras).update({ seleccionada_manual: false }).neq("id", id || "00000000-0000-0000-0000-000000000000");
+      }
+
+      const res = id
+        ? await supabaseClient.from(TABLES.billeteras).update(payload).eq("id", id)
+        : await supabaseClient.from(TABLES.billeteras).insert([{ ...payload, created_at: new Date().toISOString() }]);
+
+      if (res.error) return showToast("Error al guardar billetera: " + res.error.message, "error");
+      resetBilleteraForm();
+      await loadBilleteras();
+      showToast("Billetera guardada", "ok");
+    }
+
+    function renderBilleteras() {
+      const q = normalize(val("bi_search"));
+      const banco = val("bi_filter_banco");
+      const pc = val("bi_filter_pc");
+      const activa = val("bi_filter_activa");
+
+      const rows = billeteras.filter(b => {
+        const text = normalize([b.id, b.P3, b.nombre_visible, b.titular, b.alias, b.cbu, b.banco, b.estado, b.observaciones].join(" "));
+        return (!q || text.includes(q)) && (!banco || b.banco === banco) && (!pc || b.P3 === pc) && (activa === "" || String(Boolean(b.activa)) === activa);
+      });
+
+      if (!rows.length) return empty("billeterasBody", 10, "No hay billeteras para mostrar.");
+
+      $("billeterasBody").innerHTML = rows.map(b => `
+        <tr>
+          <td>${safe(b.id)}</td>
+          <td>${safe(b.P3)}</td>
+          <td><strong>${safe(b.nombre_visible)}</strong></td>
+          <td>${safe(b.titular)}</td>
+          <td>${safe(b.banco)}</td>
+          <td>${safe(b.alias)}</td>
+          <td>${renderEstadoBilletera(b)}</td>
+          <td>${safe(b.prioridad ?? 0)}</td>
+          <td>${b.seleccionada_manual ? pill("Manual", "blue") : '<span class="muted">No</span>'}</td>
+          <td><div class="row-actions">
+            <button class="btn-small btn-blue" onclick="editBilletera('${b.id}')">Editar</button>
+            <button class="btn-small ${b.activa ? 'btn-warning' : 'btn-primary'}" onclick="toggleBilletera('${b.id}', ${!Boolean(b.activa)})">${b.activa ? 'Pausar' : 'Activar'}</button>
+            <button class="btn-small btn-violet" onclick="setManualBilletera('${b.id}')">Manual</button>
+            <button class="btn-small btn-danger" onclick="deleteRow('${TABLES.billeteras}', '${b.id}', loadBilleteras, 'billetera')">Eliminar</button>
+          </div></td>
+        </tr>
+      `).join("");
+    }
+
+    function renderEstadoBilletera(b) {
+      if (!b.activa) return pill("Inactiva", "off");
+      if (normalize(b.estado) === "activa") return pill("Activa", "ok");
+      if (["pausada", "revision"].includes(normalize(b.estado))) return pill(b.estado, "warn");
+      if (normalize(b.estado) === "caida") return pill("Caída", "off");
+      return pill(b.estado || "Sin estado", "blue");
+    }
+
+    function editBilletera(id) {
+      const b = billeteras.find(x => String(x.id) === String(id));
+      if (!b) return;
+      $("bi_id").value = b.id;
+      $("bi_p3").value = b.P3 || "";
+      $("bi_nombre_visible").value = b.nombre_visible || "";
+      $("bi_titular").value = b.titular || "";
+      $("bi_alias").value = b.alias || "";
+      $("bi_cbu").value = b.cbu || "";
+      $("bi_banco").value = b.banco || "";
+      $("bi_estado").value = b.estado || "activa";
+      $("bi_prioridad").value = b.prioridad ?? 0;
+      $("bi_activa").value = String(Boolean(b.activa));
+      $("bi_manual").value = String(Boolean(b.seleccionada_manual));
+      $("bi_orden").value = b.orden ?? 0;
+      $("bi_observaciones").value = b.observaciones || "";
+      $("billeteraFormTitle").textContent = "Editar billetera";
+      showSection("billeteras");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function toggleBilletera(id, activa) {
+      const { error } = await supabaseClient.from(TABLES.billeteras).update({ activa, estado: activa ? "activa" : "inactiva", updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return showToast("Error al cambiar estado: " + error.message, "error");
+      await loadBilleteras();
+      showToast("Estado de billetera actualizado", "ok");
+    }
+
+    async function setManualBilletera(id) {
+      const ok = confirm("¿Querés dejar esta billetera como la seleccionada manual? Se quitará la selección manual de las demás.");
+      if (!ok) return;
+      await supabaseClient.from(TABLES.billeteras).update({ seleccionada_manual: false });
+      const { error } = await supabaseClient.from(TABLES.billeteras).update({ seleccionada_manual: true, activa: true, estado: "activa", updated_at: new Date().toISOString() }).eq("id", id);
+      if (error) return showToast("Error al seleccionar manual: " + error.message, "error");
+      await loadBilleteras();
+      showToast("Billetera manual actualizada", "ok");
+    }
+
+    function resetBilleteraForm() {
+      $("billeteraForm").reset();
+      $("bi_id").value = "";
+      $("bi_estado").value = "activa";
+      $("bi_prioridad").value = 0;
+      $("bi_orden").value = 0;
+      $("bi_activa").value = "true";
+      $("bi_manual").value = "false";
+      $("billeteraFormTitle").textContent = "Crear billetera";
+    }
+
+    function clearBilleteraFilters() {
+      $("bi_search").value = "";
+      $("bi_filter_banco").value = "";
+      $("bi_filter_pc").value = "";
+      $("bi_filter_activa").value = "";
+      renderBilleteras();
+    }
+
+    async function savePc(e) {
+      e.preventDefault();
+      const id = $("pc_id").value;
+      const payload = { nombre: val("pc_nombre"), descripcion: val("pc_descripcion"), activa: boolVal("pc_activa"), updated_at: new Date().toISOString() };
+      const res = id ? await supabaseClient.from(TABLES.pcs).update(payload).eq("id", id) : await supabaseClient.from(TABLES.pcs).insert([{ ...payload, created_at: new Date().toISOString() }]);
+      if (res.error) return showToast("Error al guardar PC: " + res.error.message, "error");
+      resetPcForm();
+      await loadPcs();
+      showToast("PC guardada", "ok");
+    }
+
+    function renderPcs() {
+      if (!pcs.length) return empty("pcsBody", 5, "No hay PCs cargadas.");
+      $("pcsBody").innerHTML = pcs.map(p => `
+        <tr>
+          <td>${safe(p.id)}</td><td><strong>${safe(p.nombre)}</strong></td><td>${safe(p.descripcion)}</td><td>${p.activa ? pill("Activa", "ok") : pill("Inactiva", "off")}</td>
+          <td><div class="row-actions"><button class="btn-small btn-blue" onclick="editPc('${p.id}')">Editar</button><button class="btn-small btn-danger" onclick="deleteRow('${TABLES.pcs}', '${p.id}', loadPcs, 'PC')">Eliminar</button></div></td>
+        </tr>`).join("");
+    }
+
+    function editPc(id) {
+      const p = pcs.find(x => String(x.id) === String(id));
+      if (!p) return;
+      $("pc_id").value = p.id;
+      $("pc_nombre").value = p.nombre || "";
+      $("pc_descripcion").value = p.descripcion || "";
+      $("pc_activa").value = String(Boolean(p.activa));
+      $("pcFormTitle").textContent = "Editar PC";
+      showSection("pcs");
+    }
+
+    function resetPcForm() {
+      $("pcForm").reset();
+      $("pc_id").value = "";
+      $("pc_activa").value = "true";
+      $("pcFormTitle").textContent = "Crear PC";
+    }
+
+    async function saveConfig(e) {
+      e.preventDefault();
+      const id = $("cfg_id").value;
+      const payload = { clave: val("cfg_clave"), valor: val("cfg_valor"), descripcion: val("cfg_descripcion"), updated_at: new Date().toISOString() };
+      const res = id ? await supabaseClient.from(TABLES.config).update(payload).eq("id", id) : await supabaseClient.from(TABLES.config).insert([{ ...payload, created_at: new Date().toISOString() }]);
+      if (res.error) return showToast("Error al guardar configuración: " + res.error.message, "error");
+      resetConfigForm();
+      await loadConfig();
+      showToast("Configuración guardada", "ok");
+    }
+
+    function renderConfig() {
+      if (!configuracion.length) return empty("configBody", 5, "No hay configuraciones cargadas.");
+      $("configBody").innerHTML = configuracion.map(c => `
+        <tr>
+          <td>${safe(c.id)}</td><td><strong>${safe(c.clave)}</strong></td><td>${safe(c.valor)}</td><td>${safe(c.descripcion)}</td>
+          <td><div class="row-actions"><button class="btn-small btn-blue" onclick="editConfig('${c.id}')">Editar</button><button class="btn-small btn-danger" onclick="deleteRow('${TABLES.config}', '${c.id}', loadConfig, 'configuración')">Eliminar</button></div></td>
+        </tr>`).join("");
+    }
+
+    function editConfig(id) {
+      const c = configuracion.find(x => String(x.id) === String(id));
+      if (!c) return;
+      $("cfg_id").value = c.id;
+      $("cfg_clave").value = c.clave || "";
+      $("cfg_valor").value = c.valor || "";
+      $("cfg_descripcion").value = c.descripcion || "";
+      $("configFormTitle").textContent = "Editar configuración";
+      showSection("configuracion");
+    }
+
+    function resetConfigForm() {
+      $("configForm").reset();
+      $("cfg_id").value = "";
+      $("configFormTitle").textContent = "Crear configuración";
+    }
+
+    function renderDashboard() {
+      const opActivos = operadores.filter(o => o.activo).length;
+      const biActivas = billeteras.filter(b => b.activa).length;
+      const biManual = billeteras.filter(b => b.seleccionada_manual).length;
+      const pcActivas = pcs.filter(p => p.activa).length;
+
+      $("statOperadoresActivos").textContent = opActivos;
+      $("statBilleterasActivas").textContent = biActivas;
+      $("statBilleteraManual").textContent = biManual;
+      $("statPcsActivas").textContent = pcActivas;
+
+      const alerts = [];
+      const caidas = billeteras.filter(b => normalize(b.estado) === "caida");
+      const sinPc = operadores.filter(o => !o.pc);
+      const sinTurno = operadores.filter(o => !o.turno);
+      const manuales = billeteras.filter(b => b.seleccionada_manual);
+
+      if (caidas.length) alerts.push(["Billeteras caídas", `${caidas.length} billetera/s figuran como caídas.`]);
+      if (sinPc.length) alerts.push(["Operadores sin PC", `${sinPc.length} operador/es no tienen PC asignada.`]);
+      if (sinTurno.length) alerts.push(["Operadores sin turno", `${sinTurno.length} operador/es no tienen turno asignado.`]);
+      if (manuales.length > 1) alerts.push(["Más de una billetera manual", `Hay ${manuales.length} billeteras marcadas como manual. Conviene dejar solo una.`]);
+      if (!alerts.length) alerts.push(["Sin alertas críticas", "No se detectaron problemas básicos en la carga actual."]);
+
+      $("alertList").innerHTML = alerts.map(a => `<div class="list-item"><strong>${safe(a[0])}</strong><span>${safe(a[1])}</span></div>`).join("");
+
+      $("turnoList").innerHTML = ["TM", "TT", "TN"].map(t => {
+        const count = operadores.filter(o => o.activo && o.turno === t).length;
+        return `<div class="list-item"><strong>${t}</strong><span>${count} operador/es activo/s asignado/s.</span></div>`;
+      }).join("");
+    }
+
+    function updateBadges() {
+      $("badgeDashboard").textContent = operadores.length + billeteras.length;
+      $("badgeOperadores").textContent = operadores.length;
+      $("badgeBilleteras").textContent = billeteras.length;
+      $("badgePcs").textContent = pcs.length;
+      $("badgeConfig").textContent = configuracion.length;
+    }
+
+    async function deleteRow(table, id, reloadFn, label) {
+      const ok = confirm(`¿Seguro que querés eliminar esta ${label}? Esta acción no se puede deshacer.`);
+      if (!ok) return;
+      const { error } = await supabaseClient.from(table).delete().eq("id", id);
+      if (error) return showToast("Error al eliminar: " + error.message, "error");
+      await reloadFn();
+      showToast(`${capitalize(label)} eliminada/o`, "ok");
+    }
+
+    function fillPcSelects() {
+      const options = ['<option value="">Seleccionar</option>'].concat(pcs.map(p => `<option value="${safeAttr(p.nombre)}">${safe(p.nombre)}</option>`)).join("");
+      const filterOptions = ['<option value="">Todas las PCs</option>'].concat(pcs.map(p => `<option value="${safeAttr(p.nombre)}">${safe(p.nombre)}</option>`)).join("");
+
+      ["op_pc", "bi_p3"].forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        const current = el.value || "";
+        el.innerHTML = options;
+        el.value = current;
+      });
+
+      ["op_filter_pc", "bi_filter_pc"].forEach(id => {
+        const el = $(id);
+        if (!el) return;
+        const current = el.value || "";
+        el.innerHTML = filterOptions;
+        el.value = current;
+      });
+    }
+
+    function handleError(title, error, tbodyId, colspan) {
+      console.error(title, error);
+      empty(tbodyId, colspan, `${title}: ${error.message}`);
+      showToast(`${title}: ${error.message}`, "error");
+    }
+
+    function setLoading(state) { document.body.classList.toggle("loading", state); }
+
+    function showToast(message, type = "ok") {
+      const el = $("toast");
+      el.className = `toast show ${type}`;
+      el.textContent = message;
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => el.classList.remove("show"), 3600);
+    }
+
+    function empty(tbodyId, colspan, message) {
+      $(tbodyId).innerHTML = `<tr><td colspan="${colspan}" class="empty">${safe(message)}</td></tr>`;
+    }
+
+    function val(id) { return ($(id)?.value || "").trim(); }
+    function boolVal(id) { return val(id) === "true"; }
+    function numVal(id) { return Number(val(id) || 0); }
+    function normalize(v) { return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim(); }
+    function capitalize(v) { return String(v || "").charAt(0).toUpperCase() + String(v || "").slice(1); }
+
+    function safe(value) {
+      return String(value ?? "").replace(/[&<>'"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[c]));
+    }
+
+    function safeAttr(value) { return safe(value).replace(/`/g, "&#96;"); }
+
+    function pill(text, type) {
+      const map = { ok: "pill-ok", off: "pill-off", warn: "pill-warn", blue: "pill-blue", violet: "pill-violet" };
+      return `<span class="pill ${map[type] || 'pill-blue'}">${safe(text)}</span>`;
+    }
+  </script>
 </body>
 </html>
